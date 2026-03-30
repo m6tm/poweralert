@@ -1,0 +1,194 @@
+---
+import '../styles/global.css';
+---
+
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>PowerAlert - System Tray</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+	</head>
+	<body class="tray-body">
+		<div class="tray-container glass">
+			<!-- Mini Battery Header -->
+			<header class="tray-header">
+				<div class="battery-info">
+					<span class="battery-pct">84%</span>
+					<span class="battery-label">BATTERIE</span>
+				</div>
+				<div class="status-indicator charging"></div>
+			</header>
+
+			<!-- Quick Stats -->
+			<div class="quick-stats">
+				<div class="stat-item">
+					<span class="label">TEMP</span>
+					<span class="value">34°C</span>
+				</div>
+				<div class="stat-item">
+					<span class="label">PUISSANCE</span>
+					<span class="value">14W</span>
+				</div>
+			</div>
+
+			<!-- Menu Items -->
+			<nav class="tray-menu">
+				<button class="menu-item" id="open-dashboard">
+					<div class="item-content">
+						<span class="item-text">Ouvrir le Tableau de Bord</span>
+					</div>
+					<span class="shortcut">⌘1</span>
+				</button>
+				<button class="menu-item" id="settings">
+					<div class="item-content">
+						<span class="item-text">Paramètres</span>
+					</div>
+				</button>
+				<div class="divider"></div>
+				<button class="menu-item exit" id="quit">
+					<div class="item-content">
+						<span class="item-text">Quitter PowerAlert</span>
+					</div>
+				</button>
+			</nav>
+		</div>
+
+		<style>
+			:root {
+				/* Override or specific for Tray */
+				--tray-width: 280px;
+			}
+
+			.tray-body {
+				background: transparent; /* Permet la transparence de la fenêtre Tauri */
+				height: fit-content;
+				width: var(--tray-width);
+                padding: 1px; /* Pour éviter le clipping des effets */
+			}
+
+			.tray-container {
+				width: 100%;
+				background: var(--color-surface-container);
+				border-radius: var(--radius-md);
+				overflow: hidden;
+				border: 1px solid rgba(255, 255, 255, 0.05); /* Ghost border */
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+			}
+
+			.tray-header {
+				padding: var(--spacing-4);
+				background: var(--color-surface-container-high);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.battery-info {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.battery-pct {
+				font-size: 1.5rem;
+				font-weight: 800;
+				color: var(--color-primary);
+				line-height: 1;
+			}
+
+			.battery-label {
+				font-size: 0.6rem;
+				color: var(--color-on-surface-variant);
+				letter-spacing: 0.1em;
+				margin-top: 2px;
+			}
+
+			.status-indicator {
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+			}
+
+			.status-indicator.charging {
+				background-color: var(--color-primary);
+				box-shadow: 0 0 8px var(--color-primary);
+			}
+
+			.quick-stats {
+				display: flex;
+				padding: var(--spacing-3) var(--spacing-4);
+				gap: var(--spacing-6);
+				background: var(--color-surface-container-low);
+			}
+
+			.stat-item {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+			}
+
+			.stat-item .label {
+				font-size: 0.55rem;
+				color: var(--color-on-surface-variant);
+				letter-spacing: 0.05em;
+			}
+
+			.stat-item .value {
+				font-size: 0.75rem;
+				font-weight: 600;
+			}
+
+			.tray-menu {
+				padding: var(--spacing-2);
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+			}
+
+			.menu-item {
+				width: 100%;
+				padding: var(--spacing-3) var(--spacing-4);
+				background: transparent;
+				border: none;
+				border-radius: 8px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				cursor: pointer;
+				color: var(--color-on-surface);
+				transition: background 0.2s ease;
+				text-align: left;
+			}
+
+			.menu-item:hover {
+				background: var(--color-surface-container-highest);
+			}
+
+			.item-text {
+				font-size: 0.875rem;
+				font-weight: 500;
+			}
+
+			.shortcut {
+				font-size: 0.7rem;
+				color: var(--color-on-surface-variant);
+				background: rgba(255, 255, 255, 0.05);
+				padding: 2px 6px;
+				border-radius: 4px;
+			}
+
+			.divider {
+				height: 1px;
+				background: rgba(255, 255, 255, 0.05);
+				margin: var(--spacing-1) var(--spacing-4);
+			}
+
+			.menu-item.exit:hover {
+				background: rgba(255, 115, 81, 0.1);
+				color: #ff7351;
+			}
+		</style>
+	</body>
+</html>

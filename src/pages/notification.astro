@@ -1,0 +1,195 @@
+---
+import '../styles/global.css';
+
+const type = Astro.url.searchParams.get('type') || 'full';
+const level = Astro.url.searchParams.get('level') || '100';
+
+const isFull = type === 'full';
+const colorClass = isFull ? 'primary' : 'secondary';
+const borderClass = isFull ? 'border-l-[#69b2ff]' : 'border-l-[#ff7349]';
+const icon = isFull ? 'battery_charging_full' : 'battery_low';
+const title = isFull ? 'Batterie pleine !' : 'Batterie faible !';
+const message = isFull 
+    ? `Le niveau a atteint ${level}%. Débranchez votre chargeur pour préserver la durée de vie de la batterie.`
+    : `La capacité restante est descendue à ${level}%. Branchez votre ordinateur dès que possible.`;
+const statusText = isFull ? 'OPTIMAL' : 'CRITICAL';
+const statusColor = isFull ? 'text-[#69b2ff]' : 'text-[#ff7349]';
+const badgeBg = isFull ? 'bg-[#69b2ff]/10' : 'bg-[#ff7349]/10';
+const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]' : 'bg-[#ff7349]/20 hover:bg-[#ff7349]/30 text-[#ff7349]';
+---
+
+<html lang="fr" class="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>PowerAlert - Notification</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+	</head>
+	<body class="notification-body">
+		<article class={`notification-card glass-panel ${borderClass}`}>
+			<div class="card-content">
+				<div class="icon-container" class:list={[badgeBg]}>
+					<span class="material-symbols-outlined" class:list={[isFull ? 'text-[#69b2ff]' : 'text-[#ff7349]']} style="font-variation-settings: 'FILL' 1; font-size: 24px;">
+						{icon}
+					</span>
+				</div>
+				<div class="text-content">
+					<div class="header">
+						<h2 class="title">{title}</h2>
+						<button class="close-btn" aria-label="Fermer">
+							<span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+						</button>
+					</div>
+					<p class="message">{message}</p>
+					<div class="footer">
+						<div class="stats">
+							<span class="stat-unit">{isFull ? '12.6V' : `${level}%`}</span>
+							<span class={`stat-status ${statusColor}`}>{statusText}</span>
+						</div>
+						<button class={`action-btn ${buttonBg}`}>
+							J'ai compris
+						</button>
+					</div>
+				</div>
+			</div>
+		</article>
+
+		<style>
+			.notification-body {
+				background: transparent;
+				height: 100vh;
+				display: flex;
+				align-items: flex-start;
+				justify-content: flex-end;
+				padding: var(--spacing-4);
+				overflow: hidden;
+			}
+
+			.notification-card {
+				width: 380px;
+				border-radius: var(--radius-lg);
+				border-left-width: 4px;
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+				animation: slideIn 0.5s ease-out;
+			}
+
+			.glass-panel {
+				background: rgba(23, 25, 32, 0.85);
+				backdrop-filter: blur(20px);
+				-webkit-backdrop-filter: blur(20px);
+				border-top: 1px solid rgba(255, 255, 255, 0.05);
+				border-right: 1px solid rgba(255, 255, 255, 0.05);
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+			}
+
+			.card-content {
+				display: flex;
+				padding: var(--spacing-4);
+				gap: var(--spacing-4);
+			}
+
+			.icon-container {
+				flex-shrink: 0;
+				width: 40px;
+				height: 40px;
+				border-radius: 8px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			.text-content {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				margin-bottom: var(--spacing-1);
+			}
+
+			.title {
+				font-size: 0.875rem;
+				font-weight: 700;
+				color: var(--color-on-surface);
+				letter-spacing: 0.02em;
+			}
+
+			.close-btn {
+				background: transparent;
+				border: none;
+				color: rgba(170, 170, 178, 0.4);
+				cursor: pointer;
+				transition: color 0.2s;
+			}
+
+			.close-btn:hover {
+				color: var(--color-on-surface);
+			}
+
+			.message {
+				font-size: 0.8125rem;
+				line-height: 1.4;
+				color: var(--color-on-surface-variant);
+				margin-bottom: var(--spacing-3);
+			}
+
+			.footer {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.stats {
+				display: flex;
+				gap: var(--spacing-3);
+				align-items: center;
+			}
+
+			.stat-unit {
+				font-size: 0.625rem;
+				font-weight: 700;
+				color: rgba(170, 170, 178, 0.4);
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.stat-status {
+				font-size: 0.625rem;
+				font-weight: 900;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+			}
+
+			.action-btn {
+				border: none;
+				padding: 6px 12px;
+				border-radius: 4px;
+				font-size: 0.6875rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+
+			.action-btn:active {
+				transform: scale(0.95);
+			}
+
+			@keyframes slideIn {
+				from {
+					transform: translateX(100%);
+					opacity: 0;
+				}
+				to {
+					transform: translateX(0);
+					opacity: 1;
+				}
+			}
+		</style>
+	</body>
+</html>

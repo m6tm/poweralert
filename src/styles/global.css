@@ -1,0 +1,70 @@
+:root {
+  /* Color Palette - PowerAlert Theme */
+  --color-background: #0c0e14;
+  --color-surface: #0c0e14;
+  --color-surface-container: #171920;
+  --color-surface-container-low: #11131a;
+  --color-surface-container-high: #1d1f27;
+  --color-surface-container-highest: #23262e;
+  
+  --color-primary: #5dfd8c;
+  --color-on-primary: #005d28;
+  --color-primary-container: #0fcb61;
+  
+  --color-on-surface: #f0f0f8;
+  --color-on-surface-variant: #aaaab2;
+
+  /* Alert Colors */
+  --color-error: #f56c42;
+  --color-info: #4da8ff;
+  --color-success: #5dfd8c;
+  
+  /* Spacing Scale - Increased */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* Radius */
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(12, 14, 20, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Kinetic Monolith styling */
+.card {
+  background: var(--color-surface-container);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6); /* Increased Spacing */
+}
