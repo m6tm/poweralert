@@ -2,267 +2,391 @@
 import '../styles/global.css';
 ---
 
-<html lang="fr">
+<html lang="fr" class="dark">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>PowerAlert - Kinetic Dashboard</title>
-		<!-- Google Fonts - Inter -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>PowerAlert - Dashboard</title>
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+        <style is:global>
+            /* Reset and base styles reinforced */
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #000 !important;
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-family: 'Inter', sans-serif;
+            }
+
+            .dashboard-window {
+                width: 440px;
+                background-color: #171920;
+                border-radius: 16px;
+                padding: 32px;
+                display: flex;
+                flex-direction: column;
+                gap: 32px;
+                box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.03);
+                z-index: 100;
+                position: relative;
+                user-select: none; /* Empêche la sélection de texte pendant le slide */
+            }
+
+            .window-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .window-title {
+                font-size: 1rem;
+                font-weight: 700;
+                color: #f0f0f8;
+                margin: 0;
+            }
+
+            .minimize-btn {
+                background: transparent;
+                border: none;
+                color: #aaaab2;
+                cursor: pointer;
+                opacity: 0.6;
+                transition: opacity 0.2s;
+                padding: 0;
+            }
+
+            .battery-section {
+                display: flex;
+                justify-content: center;
+            }
+
+            .battery-ring {
+                position: relative;
+                width: 200px;
+                height: 200px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .ring-core {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                z-index: 10;
+            }
+
+            .battery-value {
+                font-size: 3.5rem;
+                font-weight: 800;
+                color: #f0f0f8;
+                line-height: 1;
+            }
+
+            .charging-status {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-top: 12px;
+                color: #5dfd8c;
+                background: rgba(93, 253, 140, 0.1);
+                padding: 4px 10px;
+                border-radius: 20px;
+            }
+
+            .status-text {
+                font-size: 0.65rem;
+                font-weight: 800;
+                letter-spacing: 0.05em;
+            }
+
+            .progress-svg {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                transform: rotate(-90deg);
+            }
+
+            .svg-track {
+                fill: transparent;
+                stroke: #23262e;
+                stroke-width: 8;
+            }
+
+            .svg-progress {
+                fill: transparent;
+                stroke: #5dfd8c;
+                stroke-width: 8;
+                stroke-linecap: round;
+                filter: drop-shadow(0 0 8px rgba(93, 253, 140, 0.4));
+            }
+
+            .settings-list {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .setting-item {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .setting-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .setting-label {
+                font-size: 0.65rem;
+                font-weight: 700;
+                color: #aaaab2;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+            }
+
+            .setting-value {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #5dfd8c;
+            }
+
+            .slider-container {
+                cursor: pointer;
+                padding: 8px 0;
+            }
+
+            .slider-track {
+                height: 4px;
+                background: #23262e;
+                border-radius: 2px;
+                position: relative;
+            }
+
+            .slider-fill {
+                height: 100%;
+                background: #5dfd8c;
+                border-radius: 2px;
+                pointer-events: none;
+            }
+
+            .slider-thumb {
+                position: absolute;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: 12px;
+                height: 12px;
+                background: #5dfd8c;
+                border-radius: 4px;
+                box-shadow: 0 0 10px rgba(93, 253, 140, 0.5);
+                pointer-events: none;
+            }
+
+            .setting-toggle-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 8px;
+            }
+
+            .toggle-switch {
+                width: 44px;
+                height: 22px;
+                background: #23262e;
+                border-radius: 11px;
+                position: relative;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+
+            .toggle-switch.active {
+                background: #5dfd8c;
+            }
+
+            .toggle-thumb {
+                width: 18px;
+                height: 18px;
+                background: #000;
+                border-radius: 50%;
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                transition: transform 0.3s;
+                pointer-events: none;
+            }
+
+            .toggle-switch.active .toggle-thumb {
+                transform: translateX(22px);
+            }
+
+            .window-footer {
+                margin-top: 8px;
+                opacity: 0.5;
+            }
+
+            .window-footer p {
+                font-size: 0.6rem;
+                color: #aaaab2;
+                text-align: center;
+                line-height: 1.5;
+                margin: 0;
+            }
+        </style>
 	</head>
-	<body class="glass">
-		<main id="dashboard" class="dashboard-container">
-			<!-- Header / Top Bar -->
-			<header class="header-bar">
-				<div class="logo">
-					<span class="logo-dot"></span>
-					<h1 class="headline-sm">POWERALERT</h1>
-				</div>
-				<div class="status-chip active">
-					EN CHARGE
-				</div>
+	<body>
+		<main class="dashboard-window">
+			<header class="window-header">
+				<h1 class="window-title">PowerAlert</h1>
+				<button class="minimize-btn" aria-label="Réduire">
+					<span class="material-symbols-outlined">remove</span>
+				</button>
 			</header>
 
-			<!-- Central Battery Pulse -->
-			<section class="battery-pulse-section">
-				<div class="pulse-ring">
-					<div class="pulse-core">
-						<span class="display-lg">84<span class="percent">%</span></span>
+			<section class="battery-section">
+				<div class="battery-ring" id="battery-ring">
+					<div class="ring-core">
+						<span class="battery-value" id="battery-value">85%</span>
+						<div class="charging-status">
+							<span class="material-symbols-outlined" style="font-size: 14px; font-variation-settings: 'FILL' 1;">bolt</span>
+							<span class="status-text">EN CHARGE</span>
+						</div>
 					</div>
-					<!-- Custom progress SVG circular track -->
-					<svg class="progress-ring" viewBox="0 0 200 200">
-						<circle class="ring-track" cx="100" cy="100" r="90" fill="transparent" stroke-width="2"></circle>
-						<circle class="ring-progress" cx="100" cy="100" r="90" fill="transparent" stroke-width="4" stroke-dasharray="565.48" stroke-dashoffset="90.47"></circle>
+					<svg class="progress-svg" viewBox="0 0 200 200">
+						<circle class="svg-track" cx="100" cy="100" r="90"></circle>
+						<circle class="svg-progress" id="battery-progress" cx="100" cy="100" r="90" stroke-dasharray="565.48" stroke-dashoffset="84.82"></circle>
 					</svg>
 				</div>
 			</section>
 
-			<!-- Technical Data Grid (Increased Spacing) -->
-			<section class="data-grid">
-				<div class="data-module">
-					<label class="data-label">VOLTAGE</label>
-					<span class="data-value">12.8<span class="unit">V</span></span>
-				</div>
-				<div class="data-module">
-					<label class="data-label">AMPERAGE</label>
-					<span class="data-value">4.2<span class="unit">A</span></span>
-				</div>
-				<div class="data-module">
-					<label class="data-label">TEMPERATURE</label>
-					<span class="data-value">34<span class="unit">°C</span></span>
-				</div>
-				<div class="data-module">
-					<label class="data-label">EFFICIENCY</label>
-					<span class="data-value">98<span class="unit">%</span></span>
-				</div>
-			</section>
-
-			<!-- Throttling Slider Module -->
-			<section class="controls-section">
-				<div class="control-card">
-					<div class="control-header">
-						<label class="data-label">POWER THROTTLING</label>
-						<span class="data-value">60%</span>
+			<section class="settings-list">
+				<!-- Max Charge Alerte -->
+				<div class="setting-item" data-setting="max-charge">
+					<div class="setting-info">
+						<label class="setting-label">ALERTE DE CHARGE MAXIMALE (%)</label>
+						<span class="setting-value" id="max-charge-val">100</span>
 					</div>
-					<div class="custom-slider">
+					<div class="slider-container" id="max-charge-slider">
 						<div class="slider-track">
-							<div class="slider-fill" style="width: 60%;"></div>
-							<div class="slider-thumb" style="left: 60%;"></div>
+							<div class="slider-fill" id="max-charge-fill" style="width: 100%;"></div>
+							<div class="slider-thumb" id="max-charge-thumb" style="left: 100%;"></div>
 						</div>
 					</div>
 				</div>
+
+				<!-- Low Battery Alerte -->
+				<div class="setting-item" data-setting="low-battery">
+					<div class="setting-info">
+						<label class="setting-label">ALERTE DE BATTERIE FAIBLE (%)</label>
+						<span class="setting-value" id="low-battery-val">50</span>
+					</div>
+					<div class="slider-container" id="low-battery-slider">
+						<div class="slider-track">
+							<div class="slider-fill" id="low-battery-fill" style="width: 50%;"></div>
+							<div class="slider-thumb" id="low-battery-thumb" style="left: 50%;"></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Desktop Sync Toggle -->
+				<div class="setting-toggle-item">
+					<label class="setting-label" style="max-width: 200px; text-transform:none;">Lancer PowerAlert au démarrage de Windows</label>
+					<div class="toggle-switch active" id="startup-toggle">
+						<div class="toggle-thumb"></div>
+					</div>
+				</div>
 			</section>
+
+			<footer class="window-footer">
+				<p>Paramètres sauvegardés automatiquement. La fermeture réduit l'application en arrière-plan.</p>
+			</footer>
 		</main>
 
-		<style>
-			.dashboard-container {
-				width: 100%;
-				max-width: 960px;
-				margin: 0 auto;
-				padding: var(--spacing-12) var(--spacing-8); /* Padding généreux (Increased Spacing) */
-				height: 100vh;
-				display: flex;
-				flex-direction: column;
-				gap: var(--spacing-12); /* Espacement augmenté entre sections */
-			}
+        <script>
+            // Gestion des Sliders de pourcentage
+            function initSlider(sliderId: string, valueId: string, fillId: string, thumbId: string, initialValue: number) {
+                const slider = document.getElementById(sliderId) as HTMLElement;
+                const valueLabel = document.getElementById(valueId) as HTMLElement;
+                const fill = document.getElementById(fillId) as HTMLElement;
+                const thumb = document.getElementById(thumbId) as HTMLElement;
+                
+                let isDragging = false;
 
-			.header-bar {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-			}
+                function updateValue(clientX) {
+                    const rect = slider.getBoundingClientRect();
+                    let percentage = ((clientX - rect.left) / rect.width) * 100;
+                    percentage = Math.min(100, Math.max(0, Math.round(percentage)));
+                    
+                    valueLabel.textContent = percentage;
+                    fill.style.width = percentage + '%';
+                    thumb.style.left = percentage + '%';
+                    return percentage;
+                }
 
-			.logo {
-				display: flex;
-				align-items: center;
-				gap: var(--spacing-3);
-			}
+                slider.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    updateValue(e.clientX);
+                });
 
-			.logo-dot {
-				width: 8px;
-				height: 8px;
-				background-color: var(--color-primary);
-				border-radius: 50%;
-				box-shadow: 0 0 8px var(--color-primary);
-			}
+                window.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        updateValue(e.clientX);
+                    }
+                });
 
-			.headline-sm {
-				font-size: 1.5rem;
-				letter-spacing: 0.1em;
-				font-weight: 700;
-			}
+                window.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+                
+                // Support tactile
+                slider.addEventListener('touchstart', (e) => {
+                    isDragging = true;
+                    updateValue(e.touches[0].clientX);
+                });
 
-			.status-chip {
-				padding: var(--spacing-2) var(--spacing-4);
-				background: rgba(93, 253, 140, 0.1);
-				color: var(--color-primary);
-				border-radius: var(--radius-md);
-				font-size: 0.6875rem;
-				font-weight: 600;
-				letter-spacing: 0.05em;
-			}
+                window.addEventListener('touchmove', (e) => {
+                    if (isDragging) {
+                        updateValue(e.touches[0].clientX);
+                    }
+                });
 
-			/* Central Battery Indicator */
-			.battery-pulse-section {
-				flex: 1;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-			}
+                window.addEventListener('touchend', () => {
+                    isDragging = false;
+                });
+            }
 
-			.pulse-ring {
-				position: relative;
-				width: 320px;
-				height: 320px;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-			}
+            // Initialisation des sliders
+            initSlider('max-charge-slider', 'max-charge-val', 'max-charge-fill', 'max-charge-thumb', 100);
+            initSlider('low-battery-slider', 'low-battery-val', 'low-battery-fill', 'low-battery-thumb', 50);
 
-			.pulse-core {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-			}
+            // Gestion du Toggle
+            const startupToggle = document.getElementById('startup-toggle');
+            startupToggle.addEventListener('click', () => {
+                startupToggle.classList.toggle('active');
+            });
 
-			.display-lg {
-				font-size: 6rem;
-				font-weight: 800;
-				line-height: 1;
-                background: linear-gradient(135deg, var(--color-primary), var(--color-primary-container));
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-			}
-
-			.percent {
-				font-size: 2.5rem;
-				font-weight: 400;
-				color: var(--color-on-surface-variant);
-			}
-
-			.progress-ring {
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				transform: rotate(-90deg);
-			}
-
-			.ring-track {
-				stroke: var(--color-surface-container-high);
-			}
-
-			.ring-progress {
-				stroke: var(--color-primary);
-				stroke-linecap: round;
-				filter: drop-shadow(0 0 10px rgba(93, 253, 140, 0.4));
-			}
-
-			/* Technical Data Grid */
-			.data-grid {
-				display: grid;
-				grid-template-columns: repeat(4, 1fr);
-				gap: var(--spacing-8); /* Spacing augmenté */
-			}
-
-			.data-module {
-				display: flex;
-				flex-direction: column;
-				gap: var(--spacing-2);
-				padding: var(--spacing-4);
-                background: var(--color-surface-container-low);
-                border-radius: var(--radius-md);
-                border: 1px solid rgba(255, 255, 255, 0.03); /* Whisper of a line pour accessibilité */
-			}
-
-			.data-label {
-				font-size: 0.6875rem;
-				color: var(--color-on-surface-variant);
-				letter-spacing: 0.1em;
-				font-weight: 500;
-			}
-
-			.data-value {
-				font-size: 1.5rem;
-				font-weight: 600;
-				font-variant-numeric: tabular-nums;
-			}
-
-			.unit {
-				font-size: 0.875rem;
-				color: var(--color-on-surface-variant);
-				margin-left: 2px;
-			}
-
-			/* Throttling Slider */
-			.control-card {
-				background: var(--color-surface-container);
-				padding: var(--spacing-6);
-				border-radius: var(--radius-lg);
-				display: flex;
-				flex-direction: column;
-				gap: var(--spacing-6);
-			}
-
-			.control-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: baseline;
-			}
-
-			.custom-slider {
-				padding: var(--spacing-4) 0;
-			}
-
-			.slider-track {
-				height: var(--spacing-2);
-				background: var(--color-surface-container-highest);
-				border-radius: 4px;
-				position: relative;
-			}
-
-			.slider-fill {
-				height: 100%;
-				background: linear-gradient(90deg, var(--color-primary-container), var(--color-primary));
-				border-radius: 4px;
-				box-shadow: 0 0 12px rgba(93, 253, 140, 0.3);
-			}
-
-			.slider-thumb {
-				position: absolute;
-				top: 50%;
-				transform: translate(-50%, -50%);
-				width: 20px;
-				height: 20px;
-				background: var(--color-primary);
-				border-radius: 4px; /* Architectural square thumb as per design system */
-				cursor: pointer;
-			}
-		</style>
+            // Effet visuel bonus : faire pulser l'anneau
+            const batteryRing = document.getElementById('battery-ring');
+            batteryRing.style.transition = 'transform 0.3s ease';
+            batteryRing.addEventListener('mouseenter', () => {
+                batteryRing.style.transform = 'scale(1.02)';
+            });
+            batteryRing.addEventListener('mouseleave', () => {
+                batteryRing.style.transform = 'scale(1)';
+            });
+        </script>
 	</body>
 </html>
