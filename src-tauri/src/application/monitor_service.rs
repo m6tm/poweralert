@@ -1,9 +1,12 @@
 use crate::application::battery_use_case::GetBatteryStatusUseCase;
-use crate::domain::battery_alert::{AlertService, DEFAULT_HIGH_THRESHOLD, DEFAULT_LOW_THRESHOLD};
+use crate::domain::battery_alert::AlertService;
 use crate::domain::battery_port::BatteryPort;
 use log::{info, warn};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
+use crate::infrastructure::config_adapter::ConfigAdapter;
+use crate::application::config_use_case::GetConfigUseCase;
+use crate::domain::config::AppConfig;
 
 /// Service responsable de la surveillance périodique de l'état de la batterie.
 pub struct BatteryMonitorService;
@@ -49,11 +52,20 @@ impl BatteryMonitorService {
                     let _ = handle.emit("battery-status", &info_battery);
                 }
 
-                // Vérification des alertes
+                // Chargement de la configuration pour obtenir les seuils actuels
+                let config = if let Some(handle) = app_handle {
+                    let adapter = ConfigAdapter::new(handle);
+                    let use_case = GetConfigUseCase::new(adapter);
+                    use_case.execute().unwrap_or_else(|_| AppConfig::default())
+                } else {
+                    AppConfig::default()
+                };
+
+                // Vérification des alertes avec les seuils configurés
                 if let Some(alert) = AlertService::check_for_alerts(
                     &info_battery,
-                    DEFAULT_LOW_THRESHOLD,
-                    DEFAULT_HIGH_THRESHOLD,
+                    config.low_threshold,
+                    config.high_threshold,
                 ) {
                     warn!("Alerte détectée : {:?}", alert.alert_type);
                     // Émission de l'alerte au frontend si disponible

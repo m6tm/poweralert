@@ -191,5 +191,18 @@ const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]'
 				}
 			}
 		</style>
+		<script>
+			import { getCurrentWindow } from "@tauri-apps/api/window";
+
+			const appWindow = getCurrentWindow();
+
+			document.querySelector(".close-btn")?.addEventListener("click", () => {
+				appWindow.close();
+			});
+
+			document.querySelector(".action-btn")?.addEventListener("click", () => {
+				appWindow.close();
+			});
+		</script>
 	</body>
 </html>

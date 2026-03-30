@@ -12,11 +12,14 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "PowerAlert",
-        "width": 800,
+        "width": 440,
         "height": 600,
-        "resizable": true,
-        "fullscreen": false
+        "resizable": false,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true
       }
     ],
     "security": {

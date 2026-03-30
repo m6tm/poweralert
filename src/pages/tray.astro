@@ -190,5 +190,54 @@ import '../styles/global.css';
 				color: #ff7351;
 			}
 		</style>
+		<script>
+			import { invoke } from "@tauri-apps/api/core";
+			import { listen } from "@tauri-apps/api/event";
+
+			interface BatteryInfo {
+				percentage: number;
+				is_plugged_in: boolean;
+				state: string;
+			}
+
+			function updateTrayBattery(info: BatteryInfo) {
+				const pctLabel = document.querySelector(".battery-pct");
+				const indicator = document.querySelector(".status-indicator");
+
+				if (pctLabel) pctLabel.textContent = `${Math.round(info.percentage)}%`;
+				if (indicator) {
+					if (info.is_plugged_in) indicator.classList.add("charging");
+					else indicator.classList.remove("charging");
+				}
+			}
+
+			// Actions du Menu
+			document.getElementById("open-dashboard")?.addEventListener("click", () => {
+				invoke("open_dashboard"); // Supposons qu'on ajoute cette commande ou qu'on gère ça via un autre mécanisme
+			});
+
+			document.getElementById("quit")?.addEventListener("click", () => {
+				// Action pour quitter via le backend ou directement
+				// window.close() n'est pas suffisant pour quitter l'app entière Tauri
+				// mais on peut appeler une commande Tauri dédiée
+				invoke("terminate_app");
+			});
+
+			// Initialisation
+			async function init() {
+				try {
+					const initialStatus = await invoke("get_battery_status") as BatteryInfo;
+					updateTrayBattery(initialStatus);
+
+					await listen("battery-status", (event) => {
+						updateTrayBattery(event.payload as BatteryInfo);
+					});
+				} catch (err) {
+					console.error("Tray IPC Error:", err);
+				}
+			}
+
+			init();
+		</script>
 	</body>
 </html>
