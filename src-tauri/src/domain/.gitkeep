@@ -1,0 +1,2 @@
+# Ce dossier contient les règles métier pures et les entités (ex: BatteryStatus).
+# Ni dépendances techniques, ni Tauri ici.
