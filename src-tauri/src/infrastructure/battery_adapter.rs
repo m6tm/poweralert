@@ -20,7 +20,8 @@ impl BatteryPort for BatteryAdapter {
     /// - `Ok(BatteryInfo)` : Si les informations ont pu être récupérées avec succès.
     /// - `Err(String)` : Un message d'erreur si l'accès à la batterie échoue.
     fn get_status(&self) -> Result<BatteryInfo, String> {
-        // Initialisation du gestionnaire de batterie
+        // Initialisation du gestionnaire de batterie.
+        // Bien que l'instanciation soit coûteuse, l'appeler une fois par minute reste très léger.
         let manager = Manager::new().map_err(|e| format!("Erreur lors de l'initialisation du gestionnaire : {}", e))?;
         
         // Récupération de la liste des batteries disponibles
