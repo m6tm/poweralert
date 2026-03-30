@@ -33,8 +33,8 @@ pub fn run() {
         )?;
       }
 
-      // Démarrage de la surveillance asynchrone de la batterie
-      BatteryMonitorService::start_monitoring(app.handle().clone());
+      // Démarrage de la surveillance asynchrone de la batterie avec l'adaptateur système
+      BatteryMonitorService::start_monitoring(app.handle().clone(), BatteryAdapter::new());
       
       Ok(())
     })

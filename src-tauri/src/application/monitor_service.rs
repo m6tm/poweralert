@@ -1,10 +1,9 @@
-use std::time::Duration;
-use crate::infrastructure::battery_adapter::BatteryAdapter;
 use crate::application::battery_use_case::GetBatteryStatusUseCase;
+use crate::domain::battery_alert::{AlertService, DEFAULT_HIGH_THRESHOLD, DEFAULT_LOW_THRESHOLD};
 use crate::domain::battery_port::BatteryPort;
-use crate::domain::battery_alert::{AlertService, DEFAULT_LOW_THRESHOLD, DEFAULT_HIGH_THRESHOLD};
 use log::{info, warn};
-use tauri::AppHandle;
+use std::time::Duration;
+use tauri::{AppHandle, Emitter};
 
 /// Service responsable de la surveillance périodique de l'état de la batterie.
 pub struct BatteryMonitorService;
@@ -14,36 +13,60 @@ impl BatteryMonitorService {
     ///
     /// # Arguments
     /// * `_app_handle` - Le handle de l'application Tauri pour émettre des événements ou accéder à l'état.
-    pub fn start_monitoring(_app_handle: AppHandle) {
+    /// * `port` - L'implémentation du port de batterie à utiliser.
+    pub fn start_monitoring<P: BatteryPort + Send + Sync + 'static>(
+        app_handle: AppHandle,
+        port: P,
+    ) {
         tokio::spawn(async move {
-            let adapter = BatteryAdapter::new();
-            let get_status_use_case = GetBatteryStatusUseCase::new(adapter);
+            let get_status_use_case = GetBatteryStatusUseCase::new(port);
             let mut interval = tokio::time::interval(Duration::from_secs(60));
 
             info!("Démarrage du cycle de surveillance de la batterie (60s).");
 
             loop {
                 interval.tick().await;
-                Self::process_check(&get_status_use_case);
+                Self::process_check(Some(&app_handle), &get_status_use_case);
             }
         });
     }
 
     /// Effectue une vérification individuelle de l'état de la batterie.
     /// Extrait pour permettre les tests unitaires sans boucles infinies.
-    fn process_check<P: BatteryPort>(use_case: &GetBatteryStatusUseCase<P>) {
+    fn process_check<P: BatteryPort>(
+        app_handle: Option<&AppHandle>,
+        use_case: &GetBatteryStatusUseCase<P>,
+    ) {
         match use_case.execute() {
-            Ok(info) => {
-                info!("Niveau de batterie : {:.0}% (Chargement: {})", info.percentage, info.is_charging);
-                
+            Ok(info_battery) => {
+                info!(
+                    "Niveau de batterie : {:.0}% (Secteur: {})",
+                    info_battery.percentage, info_battery.is_plugged_in
+                );
+
+                // Émission de l'état actuel de la batterie au frontend si disponible
+                if let Some(handle) = app_handle {
+                    let _ = handle.emit("battery-status", &info_battery);
+                }
+
                 // Vérification des alertes
-                if let Some(alert) = AlertService::check_for_alerts(&info, DEFAULT_LOW_THRESHOLD, DEFAULT_HIGH_THRESHOLD) {
+                if let Some(alert) = AlertService::check_for_alerts(
+                    &info_battery,
+                    DEFAULT_LOW_THRESHOLD,
+                    DEFAULT_HIGH_THRESHOLD,
+                ) {
                     warn!("Alerte détectée : {:?}", alert.alert_type);
-                    // Pour [TICKET-2.3], on se contente de logger.
+                    // Émission de l'alerte au frontend si disponible
+                    if let Some(handle) = app_handle {
+                        let _ = handle.emit("battery-alert", alert);
+                    }
                 }
             }
             Err(e) => {
-                warn!("Erreur lors de la récupération de l'état de la batterie : {}", e);
+                warn!(
+                    "Erreur lors de la récupération de l'état de la batterie : {}",
+                    e
+                );
             }
         }
     }
@@ -52,8 +75,8 @@ impl BatteryMonitorService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::battery_status::{BatteryInfo, ChargingState};
     use crate::domain::battery_port::BatteryPort;
+    use crate::domain::battery_status::{BatteryInfo, ChargingState};
 
     /// Mock manuel du BatteryPort pour les tests du service de monitoring.
     struct MockBatteryPort {
@@ -74,37 +97,45 @@ mod tests {
     fn should_process_successful_check() {
         let mock_info = BatteryInfo {
             percentage: 75.0,
-            is_charging: false,
+            is_plugged_in: false,
             state: ChargingState::Discharging,
         };
-        let port = MockBatteryPort { info: Some(mock_info), error: None };
+        let port = MockBatteryPort {
+            info: Some(mock_info),
+            error: None,
+        };
         let use_case = GetBatteryStatusUseCase::new(port);
 
         // On vérifie que la méthode s'exécute sans paniquer
-        BatteryMonitorService::process_check(&use_case);
+        BatteryMonitorService::process_check(None, &use_case);
     }
 
     #[test]
     fn should_handle_check_error() {
-        let port = MockBatteryPort { info: None, error: Some("Erreur capteur".to_string()) };
+        let port = MockBatteryPort {
+            info: None,
+            error: Some("Erreur capteur".to_string()),
+        };
         let use_case = GetBatteryStatusUseCase::new(port);
 
         // On vérifie que l'erreur est capturée correctement sans crash
-        BatteryMonitorService::process_check(&use_case);
+        BatteryMonitorService::process_check(None, &use_case);
     }
 
     #[test]
     fn should_detect_alert_during_check() {
         let low_battery_info = BatteryInfo {
             percentage: 10.0,
-            is_charging: false,
+            is_plugged_in: false,
             state: ChargingState::Discharging,
         };
-        let port = MockBatteryPort { info: Some(low_battery_info), error: None };
+        let port = MockBatteryPort {
+            info: Some(low_battery_info),
+            error: None,
+        };
         let use_case = GetBatteryStatusUseCase::new(port);
 
         // La logique d'appel à AlertService est validée si l'exécution suit le chemin nominal
-        BatteryMonitorService::process_check(&use_case);
+        BatteryMonitorService::process_check(None, &use_case);
     }
 }
-

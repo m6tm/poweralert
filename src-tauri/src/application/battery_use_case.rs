@@ -36,7 +36,7 @@ mod tests {
             }
             Ok(BatteryInfo {
                 percentage: 85.0,
-                is_charging: true,
+                is_plugged_in: true,
                 state: ChargingState::Charging,
             })
         }
@@ -52,7 +52,7 @@ mod tests {
         assert!(result.is_ok());
         let info = result.unwrap();
         assert_eq!(info.percentage, 85.0);
-        assert!(info.is_charging);
+        assert!(info.is_plugged_in);
         assert!(matches!(info.state, ChargingState::Charging));
     }
 

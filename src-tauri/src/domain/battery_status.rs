@@ -18,8 +18,8 @@ pub enum ChargingState {
 pub struct BatteryInfo {
     /// Pourcentage de charge actuel (de 0.0 à 100.0).
     pub percentage: f32,
-    /// Indique si la batterie est actuellement alimentée par une source externe.
-    pub is_charging: bool,
+    /// Indique si la batterie est actuellement alimentée par une source externe (secteur).
+    pub is_plugged_in: bool,
     /// État précis de la charge (Chargement, Déchargement, Pleine, Inconnu).
     pub state: ChargingState,
 }

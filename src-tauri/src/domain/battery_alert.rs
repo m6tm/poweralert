@@ -42,14 +42,14 @@ impl AlertService {
     /// # Retourne
     /// Un `Option<BatteryAlert>` contenant l'alerte si nécessaire, sinon `None`.
     pub fn check_for_alerts(battery_info: &BatteryInfo, low_threshold: f32, high_threshold: f32) -> Option<BatteryAlert> {
-        if !battery_info.is_charging && battery_info.percentage <= low_threshold {
+        if !battery_info.is_plugged_in && battery_info.percentage <= low_threshold {
             return Some(BatteryAlert {
                 alert_type: AlertType::ConnectCharger,
                 message: format!("Batterie faible ({:.0}%). Branchez votre chargeur.", battery_info.percentage),
             });
         }
         
-        if battery_info.is_charging && battery_info.percentage >= high_threshold {
+        if battery_info.is_plugged_in && battery_info.percentage >= high_threshold {
             return Some(BatteryAlert {
                 alert_type: AlertType::DisconnectCharger,
                 message: format!("Batterie pleine ({:.0}%). Débranchez votre chargeur.", battery_info.percentage),
@@ -69,7 +69,7 @@ mod tests {
     fn should_alert_to_connect_at_low_threshold() {
         let info = BatteryInfo {
             percentage: 50.0,
-            is_charging: false,
+            is_plugged_in: false,
             state: ChargingState::Discharging,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
@@ -81,7 +81,7 @@ mod tests {
     fn should_not_alert_if_already_charging_at_low_level() {
         let info = BatteryInfo {
             percentage: 40.0,
-            is_charging: true,
+            is_plugged_in: true,
             state: ChargingState::Charging,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
@@ -92,7 +92,7 @@ mod tests {
     fn should_alert_to_disconnect_at_high_threshold() {
         let info = BatteryInfo {
             percentage: 100.0,
-            is_charging: true,
+            is_plugged_in: true,
             state: ChargingState::Full,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
@@ -104,7 +104,7 @@ mod tests {
     fn should_work_with_defaults() {
         let info = BatteryInfo {
             percentage: 50.0,
-            is_charging: false,
+            is_plugged_in: false,
             state: ChargingState::Discharging,
         };
         let alert = AlertService::check_with_defaults(&info);
@@ -116,7 +116,7 @@ mod tests {
     fn should_not_alert_if_just_above_low_threshold() {
         let info = BatteryInfo {
             percentage: 50.1,
-            is_charging: false,
+            is_plugged_in: false,
             state: ChargingState::Discharging,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
@@ -127,7 +127,7 @@ mod tests {
     fn should_not_alert_to_disconnect_if_below_high_threshold() {
         let info = BatteryInfo {
             percentage: 99.9,
-            is_charging: true,
+            is_plugged_in: true,
             state: ChargingState::Charging,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
@@ -138,7 +138,7 @@ mod tests {
     fn should_not_alert_to_disconnect_at_high_threshold_if_discharging() {
         let info = BatteryInfo {
             percentage: 100.0,
-            is_charging: false,
+            is_plugged_in: false,
             state: ChargingState::Discharging,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);

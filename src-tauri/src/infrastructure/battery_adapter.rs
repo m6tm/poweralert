@@ -21,7 +21,7 @@ impl BatteryPort for BatteryAdapter {
     /// - `Err(String)` : Un message d'erreur si l'accès à la batterie échoue.
     fn get_status(&self) -> Result<BatteryInfo, String> {
         // Initialisation du gestionnaire de batterie.
-        // Bien que l'instanciation soit coûteuse, l'appeler une fois par minute reste très léger.
+        // Sur Windows, le gestionnaire n'est pas thread-safe (Rc), il doit être instancié à chaque appel.
         let manager = Manager::new().map_err(|e| format!("Erreur lors de l'initialisation du gestionnaire : {}", e))?;
         
         // Récupération de la liste des batteries disponibles
@@ -42,11 +42,12 @@ impl BatteryPort for BatteryAdapter {
                 _ => ChargingState::Unknown,
             };
 
-            let is_charging = matches!(state, ChargingState::Charging);
+            // La batterie est considérée comme "branchée" si elle charge ou si elle est pleine.
+            let is_plugged_in = matches!(state, ChargingState::Charging | ChargingState::Full);
 
             Ok(BatteryInfo {
                 percentage,
-                is_charging,
+                is_plugged_in,
                 state,
             })
         } else {
