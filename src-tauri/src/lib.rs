@@ -84,24 +84,36 @@ pub fn run() {
       // Écouteur global pour les alertes de batterie afin d'ouvrir la fenêtre de notification
       let handle = app.handle().clone();
       app.listen("battery-alert", move |event| {
-        if let Ok(alert) = serde_json::from_str::<BatteryAlert>(event.payload()) {
-           let type_param = if alert.alert_type == AlertType::DisconnectCharger { "full" } else { "low" };
-           
-           // Récupération du pourcentage actuel pour l'UI de notification
-           let adapter = BatteryAdapter::new();
-           let percentage = GetBatteryStatusUseCase::new(adapter).execute()
-              .map(|info| info.percentage)
-              .unwrap_or(0.0);
+        match serde_json::from_str::<BatteryAlert>(event.payload()) {
+           Ok(alert) => {
+               let type_param = if alert.alert_type == AlertType::DisconnectCharger { "full" } else { "low" };
+               
+               // Récupération du pourcentage actuel pour l'UI de notification
+               let adapter = BatteryAdapter::new();
+               let percentage = GetBatteryStatusUseCase::new(adapter).execute()
+                  .map(|info| info.percentage)
+                  .unwrap_or(0.0);
 
-           let url = format!("/notification?type={}&level={:.0}", type_param, percentage);
-           
-           let _ = WebviewWindowBuilder::new(&handle, "notification", WebviewUrl::App(url.into()))
-              .title("PowerAlert - Notification")
-              .inner_size(400.0, 160.0)
-              .always_on_top(true)
-              .decorations(false)
-              .transparent(true)
-              .build();
+               let url = format!("/notification?type={}&level={:.0}", type_param, percentage);
+               
+               if let Some(window) = handle.get_webview_window("notification") {
+                   let js_code = format!("window.location.href = '{}';", url);
+                   let _ = window.eval(&js_code);
+                   let _ = window.show();
+                   let _ = window.set_focus();
+               } else {
+                   let _ = WebviewWindowBuilder::new(&handle, "notification", WebviewUrl::App(url.into()))
+                      .title("PowerAlert - Notification")
+                      .inner_size(400.0, 160.0)
+                      .always_on_top(true)
+                      .decorations(false)
+                      .transparent(true)
+                      .build();
+               }
+           },
+           Err(e) => {
+               log::error!("Erreur de parsing de l'alerte: {}. Payload: {}", e, event.payload());
+           }
         }
       });
 

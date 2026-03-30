@@ -1,21 +1,23 @@
 ---
-import '../styles/global.css';
+import "../styles/global.css";
 
-const type = Astro.url.searchParams.get('type') || 'full';
-const level = Astro.url.searchParams.get('level') || '100';
+const type = Astro.url.searchParams.get("type") || "full";
+const level = Astro.url.searchParams.get("level") || "100";
 
-const isFull = type === 'full';
-const colorClass = isFull ? 'primary' : 'secondary';
-const borderClass = isFull ? 'border-l-[#69b2ff]' : 'border-l-[#ff7349]';
-const icon = isFull ? 'battery_charging_full' : 'battery_low';
-const title = isFull ? 'Batterie pleine !' : 'Batterie faible !';
-const message = isFull 
-    ? `Le niveau a atteint ${level}%. Débranchez votre chargeur pour préserver la durée de vie de la batterie.`
-    : `La capacité restante est descendue à ${level}%. Branchez votre ordinateur dès que possible.`;
-const statusText = isFull ? 'OPTIMAL' : 'CRITICAL';
-const statusColor = isFull ? 'text-[#69b2ff]' : 'text-[#ff7349]';
-const badgeBg = isFull ? 'bg-[#69b2ff]/10' : 'bg-[#ff7349]/10';
-const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]' : 'bg-[#ff7349]/20 hover:bg-[#ff7349]/30 text-[#ff7349]';
+const isFull = type === "full";
+const colorClass = isFull ? "primary" : "secondary";
+const borderClass = isFull ? "border-l-[#69b2ff]" : "border-l-[#ff7349]";
+const icon = isFull ? "battery_charging_full" : "battery_low";
+const title = isFull ? "Batterie pleine !" : "Batterie faible !";
+const message = isFull
+	? `Le niveau a atteint ${level}%. Débranchez votre chargeur pour préserver la durée de vie de la batterie.`
+	: `La capacité restante est descendue à ${level}%. Branchez votre ordinateur dès que possible.`;
+const statusText = isFull ? "OPTIMAL" : "CRITICAL";
+const statusColor = isFull ? "text-[#69b2ff]" : "text-[#ff7349]";
+const badgeBg = isFull ? "bg-[#69b2ff]/10" : "bg-[#ff7349]/10";
+const buttonBg = isFull
+	? "bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]"
+	: "bg-[#ff7349]/20 hover:bg-[#ff7349]/30 text-[#ff7349]";
 ---
 
 <html lang="fr" class="dark">
@@ -23,16 +25,30 @@ const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]'
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<title>PowerAlert - Notification</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+			rel="stylesheet"
+		/>
 	</head>
 	<body class="notification-body">
-		<article class={`notification-card glass-panel ${borderClass}`} data-tauri-drag-region>
+		<article
+			class={`notification-card glass-panel ${borderClass}`}
+		>
 			<div class="card-content">
 				<div class="icon-container" class:list={[badgeBg]}>
-					<span class="material-symbols-outlined" class:list={[isFull ? 'text-[#69b2ff]' : 'text-[#ff7349]']} style="font-variation-settings: 'FILL' 1; font-size: 24px;">
+					<span
+						class="material-symbols-outlined"
+						class:list={[
+							isFull ? "text-[#69b2ff]" : "text-[#ff7349]",
+						]}
+						style="font-variation-settings: 'FILL' 1; font-size: 24px;"
+					>
 						{icon}
 					</span>
 				</div>
@@ -40,14 +56,21 @@ const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]'
 					<div class="header">
 						<h2 class="title">{title}</h2>
 						<button class="close-btn" aria-label="Fermer">
-							<span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+							<span
+								class="material-symbols-outlined"
+								style="font-size: 16px;">close</span
+							>
 						</button>
 					</div>
 					<p class="message">{message}</p>
 					<div class="footer">
 						<div class="stats">
-							<span class="stat-unit">{isFull ? '12.6V' : `${level}%`}</span>
-							<span class={`stat-status ${statusColor}`}>{statusText}</span>
+							<span class="stat-unit"
+								>{isFull ? "12.6V" : `${level}%`}</span
+							>
+							<span class={`stat-status ${statusColor}`}
+								>{statusText}</span
+							>
 						</div>
 						<button class={`action-btn ${buttonBg}`}>
 							J'ai compris
@@ -59,7 +82,6 @@ const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]'
 
 		<style>
 			.notification-body {
-				background: transparent;
 				height: 100vh;
 				display: flex;
 				align-items: flex-start;
@@ -201,13 +223,27 @@ const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]'
 
 			const appWindow = getCurrentWindow();
 
-			document.querySelector(".close-btn")?.addEventListener("click", () => {
-				appWindow.close();
+			// Mousedown pour la zone de drag via IPC (similaire au Dashboard)
+			document.body.addEventListener("mousedown", (e: MouseEvent) => {
+				// Ignorer le clic s'il provient d'un bouton pour qu'il puisse être cliqué
+				if ((e.target as HTMLElement).closest("button")) {
+					return;
+				}
+				// On autorise le glissement sur tout le reste de la notification
+				appWindow.startDragging();
 			});
 
-			document.querySelector(".action-btn")?.addEventListener("click", () => {
-				appWindow.close();
-			});
+			document
+				.querySelector(".close-btn")
+				?.addEventListener("click", () => {
+					appWindow.close();
+				});
+
+			document
+				.querySelector(".action-btn")
+				?.addEventListener("click", () => {
+					appWindow.close();
+				});
 		</script>
 	</body>
 </html>
