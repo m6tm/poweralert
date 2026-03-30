@@ -367,6 +367,49 @@ import "../styles/global.css";
 		<script>
 			import { invoke } from "@tauri-apps/api/core";
 			import { listen } from "@tauri-apps/api/event";
+			import { getCurrentWindow } from "@tauri-apps/api/window";
+
+			// Activation du drag natif via l'API Tauri (fiable avec decorations: false)
+			const appWindow = getCurrentWindow();
+			// Zone de déplacement (Dragging) customisée
+			// On écoute sur `document.body` pour couvrir tout le haut de la fenêtre (y compris le padding)
+			document.body.addEventListener("mousedown", (e: MouseEvent) => {
+				// Condition : Clic se trouvant de 0 jusqu'à ~70px (zone du titre + headers + marges)
+				if (e.clientY <= 70) {
+					// Ignorer le clic sur des boutons ou sliders pour ne pas bloquer les intéractions UI natives
+					if (
+						(e.target as HTMLElement).closest("button") ||
+						(e.target as HTMLElement).closest(".slider-container")
+					) {
+						return;
+					}
+					appWindow.startDragging();
+				}
+			});
+
+			// Gestion du bouton minimiser
+			const minimizeBtn = document.querySelector(".minimize-btn");
+			if (minimizeBtn) {
+				minimizeBtn.addEventListener("click", async (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					console.log(
+						"[DEBUG] Clic sur le bouton de réduction détecté !",
+					);
+					try {
+						console.log(
+							"[DEBUG] Tentative de masquage de la fenêtre...",
+						);
+						await appWindow.hide();
+						console.log("[DEBUG] Masquage avec success");
+					} catch (err) {
+						console.error(
+							"[DEBUG] Erreur bloquant le masquage (permissions Tauri V2 ?) : ",
+							err,
+						);
+					}
+				});
+			}
 			import { enable, disable } from "@tauri-apps/plugin-autostart";
 
 			interface BatteryInfo {
@@ -386,16 +429,20 @@ import "../styles/global.css";
 				const valueLabel = document.getElementById("battery-value");
 				const progress = document.getElementById("battery-progress");
 				const statusText = document.querySelector(".status-text");
-				const chargingIcon = document.querySelector(".charging-status .material-symbols-outlined");
+				const chargingIcon = document.querySelector(
+					".charging-status .material-symbols-outlined",
+				);
 
-				if (valueLabel) valueLabel.textContent = `${Math.round(info.percentage)}%`;
-				
+				if (valueLabel)
+					valueLabel.textContent = `${Math.round(info.percentage)}%`;
+
 				if (progress) {
 					const radius = 90;
 					const circumference = 2 * Math.PI * radius;
-					const offset = circumference - (info.percentage / 100) * circumference;
+					const offset =
+						circumference - (info.percentage / 100) * circumference;
 					progress.style.strokeDashoffset = offset.toString();
-					
+
 					// Changement de couleur selon le niveau
 					const svgProgress = progress as unknown as SVGCircleElement;
 					if (info.percentage <= 20) {
@@ -407,12 +454,21 @@ import "../styles/global.css";
 					}
 				}
 
-				if (statusText) statusText.textContent = info.is_plugged_in ? "EN CHARGE" : "SUR BATTERIE";
-				if (chargingIcon) (chargingIcon as any).style.display = info.is_plugged_in ? "block" : "none";
+				if (statusText)
+					statusText.textContent = info.is_plugged_in
+						? "EN CHARGE"
+						: "SUR BATTERIE";
+				if (chargingIcon)
+					(chargingIcon as any).style.display = info.is_plugged_in
+						? "block"
+						: "none";
 			}
 
 			// Retarde l'exécution d'une fonction jusqu'à la fin d'une période d'inactivité
-			function debounce<T extends unknown[]>(fn: (...args: T) => void, delayMs: number) {
+			function debounce<T extends unknown[]>(
+				fn: (...args: T) => void,
+				delayMs: number,
+			) {
 				let timer: ReturnType<typeof setTimeout>;
 				return (...args: T) => {
 					clearTimeout(timer);
@@ -426,7 +482,7 @@ import "../styles/global.css";
 				valueId: string,
 				fillId: string,
 				thumbId: string,
-				onChange?: (val: number) => void
+				onChange?: (val: number) => void,
 			) {
 				const slider = document.getElementById(sliderId);
 				const valueLabel = document.getElementById(valueId);
@@ -448,7 +504,10 @@ import "../styles/global.css";
 					if (!slider) return;
 					const rect = slider.getBoundingClientRect();
 					let percentage = ((clientX - rect.left) / rect.width) * 100;
-					percentage = Math.min(100, Math.max(0, Math.round(percentage)));
+					percentage = Math.min(
+						100,
+						Math.max(0, Math.round(percentage)),
+					);
 
 					setUIValue(percentage);
 					if (finalize && onChange) {
@@ -491,7 +550,9 @@ import "../styles/global.css";
 						isDragging = false;
 						// Pour le tactile on ne récupère pas facilement la position finale du doigt
 						// On se contente de la dernière valeur
-						const finalVal = parseInt(valueLabel.textContent || "0");
+						const finalVal = parseInt(
+							valueLabel.textContent || "0",
+						);
 						if (onChange) onChange(finalVal);
 					}
 				});
@@ -503,14 +564,14 @@ import "../styles/global.css";
 			let currentConfig: AppConfig = {
 				low_threshold: 50,
 				high_threshold: 100,
-				run_at_startup: false
+				run_at_startup: false,
 			};
 
 			async function saveCurrentConfig() {
 				try {
 					console.log("Saving config...", currentConfig);
 					await invoke("save_config", { config: currentConfig });
-					
+
 					// Activation réelle au niveau du système (plugin-autostart)
 					if (currentConfig.run_at_startup) {
 						await enable();
@@ -533,7 +594,7 @@ import "../styles/global.css";
 				(val) => {
 					currentConfig.high_threshold = val;
 					debouncedSave();
-				}
+				},
 			);
 
 			const lowSlider = initSlider(
@@ -544,7 +605,7 @@ import "../styles/global.css";
 				(val) => {
 					currentConfig.low_threshold = val;
 					debouncedSave();
-				}
+				},
 			);
 
 			// Gestion du Toggle
@@ -552,7 +613,8 @@ import "../styles/global.css";
 			if (startupToggle) {
 				startupToggle.addEventListener("click", () => {
 					startupToggle.classList.toggle("active");
-					currentConfig.run_at_startup = startupToggle.classList.contains("active");
+					currentConfig.run_at_startup =
+						startupToggle.classList.contains("active");
 					saveCurrentConfig();
 				});
 			}
@@ -561,18 +623,21 @@ import "../styles/global.css";
 			async function init() {
 				try {
 					// 1. Charger la config
-					const config = await invoke("get_config") as AppConfig;
+					const config = (await invoke("get_config")) as AppConfig;
 					currentConfig = config;
-					
+
 					if (maxSlider) maxSlider.setUIValue(config.high_threshold);
 					if (lowSlider) lowSlider.setUIValue(config.low_threshold);
 					if (startupToggle) {
-						if (config.run_at_startup) startupToggle.classList.add("active");
+						if (config.run_at_startup)
+							startupToggle.classList.add("active");
 						else startupToggle.classList.remove("active");
 					}
 
 					// 2. Charger l'état actuel de la batterie
-					const initialStatus = await invoke("get_battery_status") as BatteryInfo;
+					const initialStatus = (await invoke(
+						"get_battery_status",
+					)) as BatteryInfo;
 					updateBatteryUI(initialStatus);
 
 					// 3. Écouter les mises à jour

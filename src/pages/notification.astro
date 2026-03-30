@@ -29,7 +29,7 @@ const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]'
 		<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 	</head>
 	<body class="notification-body">
-		<article class={`notification-card glass-panel ${borderClass}`}>
+		<article class={`notification-card glass-panel ${borderClass}`} data-tauri-drag-region>
 			<div class="card-content">
 				<div class="icon-container" class:list={[badgeBg]}>
 					<span class="material-symbols-outlined" class:list={[isFull ? 'text-[#69b2ff]' : 'text-[#ff7349]']} style="font-variation-settings: 'FILL' 1; font-size: 24px;">
@@ -74,6 +74,11 @@ const buttonBg = isFull ? 'bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]'
 				border-left-width: 4px;
 				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 				animation: slideIn 0.5s ease-out;
+				cursor: grab;
+			}
+
+			.notification-card:active {
+				cursor: grabbing;
 			}
 
 			.glass-panel {

@@ -12,16 +12,18 @@ use crate::domain::config::AppConfig;
 pub struct BatteryMonitorService;
 
 impl BatteryMonitorService {
-    /// Démarre la boucle de surveillance asynchrone.
+    /// Démarre la boucle de surveillance asynchrone via le runtime interne de Tauri.
     ///
     /// # Arguments
-    /// * `_app_handle` - Le handle de l'application Tauri pour émettre des événements ou accéder à l'état.
+    /// * `app_handle` - Le handle de l'application Tauri pour émettre des événements.
     /// * `port` - L'implémentation du port de batterie à utiliser.
     pub fn start_monitoring<P: BatteryPort + Send + Sync + 'static>(
         app_handle: AppHandle,
         port: P,
     ) {
-        tokio::spawn(async move {
+        // tauri::async_runtime::spawn est toujours disponible dans le contexte Tauri,
+        // contrairement à tokio::spawn qui requiert un runtime déjà initialisé.
+        tauri::async_runtime::spawn(async move {
             let get_status_use_case = GetBatteryStatusUseCase::new(port);
             let mut interval = tokio::time::interval(Duration::from_secs(60));
 
