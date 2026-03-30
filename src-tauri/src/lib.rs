@@ -88,13 +88,17 @@ pub fn run() {
            Ok(alert) => {
                let type_param = if alert.alert_type == AlertType::DisconnectCharger { "full" } else { "low" };
                
+               let handle_clone = handle.clone();
+               let config = GetConfigUseCase::new(ConfigAdapter::new(&handle_clone)).execute().unwrap_or_else(|_| AppConfig::default());
+               let threshold = if type_param == "full" { config.high_threshold } else { config.low_threshold };
+
                // Récupération du pourcentage actuel pour l'UI de notification
                let adapter = BatteryAdapter::new();
                let percentage = GetBatteryStatusUseCase::new(adapter).execute()
                   .map(|info| info.percentage)
                   .unwrap_or(0.0);
 
-               let url = format!("/notification?type={}&level={:.0}", type_param, percentage);
+               let url = format!("/notification?type={}&level={:.0}&threshold={}", type_param, percentage, threshold);
                
                if let Some(window) = handle.get_webview_window("notification") {
                    let js_code = format!("window.location.href = '{}';", url);

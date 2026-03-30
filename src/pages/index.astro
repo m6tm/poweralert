@@ -393,15 +393,8 @@ import "../styles/global.css";
 				minimizeBtn.addEventListener("click", async (e) => {
 					e.preventDefault();
 					e.stopPropagation();
-					console.log(
-						"[DEBUG] Clic sur le bouton de réduction détecté !",
-					);
 					try {
-						console.log(
-							"[DEBUG] Tentative de masquage de la fenêtre...",
-						);
 						await appWindow.hide();
-						console.log("[DEBUG] Masquage avec success");
 					} catch (err) {
 						console.error(
 							"[DEBUG] Erreur bloquant le masquage (permissions Tauri V2 ?) : ",
