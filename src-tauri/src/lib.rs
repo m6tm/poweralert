@@ -4,6 +4,7 @@ pub mod application;
 
 use crate::infrastructure::battery_adapter::BatteryAdapter;
 use crate::application::battery_use_case::GetBatteryStatusUseCase;
+use crate::application::monitor_service::BatteryMonitorService;
 use crate::domain::battery_status::BatteryInfo;
 
 #[tauri::command]
@@ -31,6 +32,10 @@ pub fn run() {
             .build(),
         )?;
       }
+
+      // Démarrage de la surveillance asynchrone de la batterie
+      BatteryMonitorService::start_monitoring(app.handle().clone());
+      
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![get_battery_status])

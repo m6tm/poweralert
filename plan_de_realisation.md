@@ -19,7 +19,7 @@ Ce document liste l'ensemble des tickets de réalisation pour le projet PowerAle
     *   *Critères d'acceptation :* Des tests unitaires valident le déclenchement des alertes (ex: alerte *brancher* si niveau <= 50%, alerte *débrancher* si niveau >= 100%).
 *   **[TICKET-2.3] Cycle de vérification asynchrone**
     *   *Description :* Mettre en place une boucle asynchrone gérée par Tauri qui vérifie l'état de la batterie à intervalles réguliers (ex: toutes les minutes).
-    *   *Critères d'acceptation :* L'application logge le niveau de batterie toutes les minutes de manière autonome sans bloquer l'UI.
+    *   *Critères d'acceptation :* L'application logge le niveau de batterie toutes les minutes de manière autonome sans bloquer l'UI et sans consommer trop de ressources. La consommation de ressources doit être très négligeable.
 
 ## Epic 3 : Interface Utilisateur (Astro) & IPC
 *   **[TICKET-3.1] Design de la fenêtre principale (Astro)**
