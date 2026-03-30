@@ -23,7 +23,7 @@ Ce document liste l'ensemble des tickets de réalisation pour le projet PowerAle
 
 ## Epic 3 : Interface Utilisateur (Astro) & IPC
 *   **[TICKET-3.1] Design de la fenêtre principale (Astro)**
-    *   *Description :* Créer l'interface minimaliste affichant le pourcentage actuel de la batterie et les paramètres. (Utilisation de CSS natif et HTML, design responsive).
+    *   *Description :* Créer l'interface minimaliste affichant le pourcentage actuel de la batterie et les paramètres. (Utilisation de CSS natif et HTML, fenêtre non redimentionnable).
     *   *Critères d'acceptation :* L'UI affiche une maquette statique du niveau de batterie et des champs pour modifier les seuils (100% et 50%).
 *   **[TICKET-3.2] Communication IPC Frontend-Backend (État)**
     *   *Description :* Lier le frontend Astro au backend Tauri à l'aide de l'API IPC (Inter-Process Communication) pour récupérer et afficher dynamiquement le niveau de batterie réel.
