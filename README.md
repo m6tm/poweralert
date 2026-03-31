@@ -81,13 +81,13 @@ Cette structure garantit un code modulaire, testable et indépendant des framewo
 Pour lancer l'application en mode développement :
 
 ```bash
-pnpm tauri dev
+pnpm tauri:dev
 ```
 
 Pour générer l'installateur (Release) :
 
 ```bash
-pnpm tauri build
+pnpm tauri:build
 ```
 
 ---
