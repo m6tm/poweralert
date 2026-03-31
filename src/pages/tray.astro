@@ -42,11 +42,6 @@ import '../styles/global.css';
 					</div>
 					<span class="shortcut">⌘1</span>
 				</button>
-				<button class="menu-item" id="settings">
-					<div class="item-content">
-						<span class="item-text">Paramètres</span>
-					</div>
-				</button>
 				<div class="divider"></div>
 				<button class="menu-item exit" id="quit">
 					<div class="item-content">
@@ -59,18 +54,27 @@ import '../styles/global.css';
 		<style>
 			:root {
 				/* Override or specific for Tray */
-				--tray-width: 280px;
+				--tray-width: 100%;
+			}
+
+			html {
+				background: transparent !important;
 			}
 
 			.tray-body {
-				background: transparent; /* Permet la transparence de la fenêtre Tauri */
-				height: fit-content;
-				width: var(--tray-width);
-                padding: 1px; /* Pour éviter le clipping des effets */
+				background: transparent !important; /* Permet la transparence de la fenêtre Tauri */
+				height: 100vh;
+				width: 100vw;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
 			}
 
 			.tray-container {
 				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
 				background: var(--color-surface-container);
 				border-radius: var(--radius-md);
 				overflow: hidden;
@@ -79,7 +83,7 @@ import '../styles/global.css';
 			}
 
 			.tray-header {
-				padding: var(--spacing-4);
+				padding: var(--spacing-3);
 				background: var(--color-surface-container-high);
 				display: flex;
 				justify-content: space-between;
@@ -92,22 +96,22 @@ import '../styles/global.css';
 			}
 
 			.battery-pct {
-				font-size: 1.5rem;
+				font-size: 1.25rem;
 				font-weight: 800;
 				color: var(--color-primary);
 				line-height: 1;
 			}
 
 			.battery-label {
-				font-size: 0.6rem;
+				font-size: 0.55rem;
 				color: var(--color-on-surface-variant);
 				letter-spacing: 0.1em;
 				margin-top: 2px;
 			}
 
 			.status-indicator {
-				width: 10px;
-				height: 10px;
+				width: 8px;
+				height: 8px;
 				border-radius: 50%;
 			}
 
@@ -118,8 +122,8 @@ import '../styles/global.css';
 
 			.quick-stats {
 				display: flex;
-				padding: var(--spacing-3) var(--spacing-4);
-				gap: var(--spacing-6);
+				padding: var(--spacing-2) var(--spacing-3);
+				gap: var(--spacing-4);
 				background: var(--color-surface-container-low);
 			}
 
@@ -141,7 +145,7 @@ import '../styles/global.css';
 			}
 
 			.tray-menu {
-				padding: var(--spacing-2);
+				padding: var(--spacing-1);
 				display: flex;
 				flex-direction: column;
 				gap: 2px;
@@ -149,7 +153,7 @@ import '../styles/global.css';
 
 			.menu-item {
 				width: 100%;
-				padding: var(--spacing-3) var(--spacing-4);
+				padding: var(--spacing-2) var(--spacing-3);
 				background: transparent;
 				border: none;
 				border-radius: 8px;
@@ -167,7 +171,7 @@ import '../styles/global.css';
 			}
 
 			.item-text {
-				font-size: 0.875rem;
+				font-size: 0.8125rem;
 				font-weight: 500;
 			}
 
@@ -198,16 +202,29 @@ import '../styles/global.css';
 				percentage: number;
 				is_plugged_in: boolean;
 				state: string;
+				temperature?: number | null;
+				power_usage?: number | null;
 			}
 
 			function updateTrayBattery(info: BatteryInfo) {
 				const pctLabel = document.querySelector(".battery-pct");
 				const indicator = document.querySelector(".status-indicator");
+				const values = document.querySelectorAll(".stat-item .value");
 
 				if (pctLabel) pctLabel.textContent = `${Math.round(info.percentage)}%`;
 				if (indicator) {
 					if (info.is_plugged_in) indicator.classList.add("charging");
 					else indicator.classList.remove("charging");
+				}
+
+				// Mise à jour de la température (index 0)
+				if (values[0] && info.temperature !== undefined && info.temperature !== null) {
+					values[0].textContent = `${Math.round(info.temperature)}°C`;
+				}
+
+				// Mise à jour de la puissance (index 1)
+				if (values[1] && info.power_usage !== undefined && info.power_usage !== null) {
+					values[1].textContent = `${Math.abs(info.power_usage).toFixed(1)}W`;
 				}
 			}
 

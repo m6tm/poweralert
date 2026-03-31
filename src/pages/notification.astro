@@ -229,6 +229,61 @@ const buttonBg = isFull
 
 			const appWindow = getCurrentWindow();
 
+			// --- Mise à jour dynamique de l'UI (Architecture SSG) ---
+			function updateUIFromParams() {
+				const params = new URLSearchParams(window.location.search);
+				const type = params.get("type") || "full";
+				const level = params.get("level") || "100";
+				const threshold = params.get("threshold") || (type === "full" ? "100" : "20");
+				const isFull = type === "full";
+
+				const article = document.querySelector("article");
+				if (article) {
+					article.classList.remove("border-l-[#69b2ff]", "border-l-[#ff7349]");
+					article.classList.add(isFull ? "border-l-[#69b2ff]" : "border-l-[#ff7349]");
+				}
+
+				const iconContainer = document.querySelector(".icon-container");
+				if (iconContainer) {
+					iconContainer.className = "icon-container " + (isFull ? "bg-[#69b2ff]/10" : "bg-[#ff7349]/10");
+				}
+
+				const icon = document.querySelector(".icon-container span");
+				if (icon) {
+					icon.textContent = isFull ? "battery_charging_full" : "battery_low";
+					icon.classList.remove("text-[#69b2ff]", "text-[#ff7349]");
+					icon.classList.add(isFull ? "text-[#69b2ff]" : "text-[#ff7349]");
+				}
+
+				const titleElem = document.querySelector(".title");
+				if (titleElem) titleElem.textContent = isFull ? "Batterie pleine !" : "Batterie faible !";
+
+				const messageElem = document.querySelector(".message");
+				if (messageElem) {
+					messageElem.textContent = isFull
+						? `Le niveau a dépassé votre limite de ${threshold}%. Débranchez votre chargeur pour préserver la durée de vie de la batterie.`
+						: `La capacité restante est descendue sous les ${threshold}%. Branchez votre ordinateur dès que possible.`;
+				}
+
+				const statUnit = document.querySelector(".stat-unit");
+				if (statUnit) statUnit.textContent = isFull ? "12.6V" : `${level}%`;
+
+				const statStatus = document.querySelector(".stat-status");
+				if (statStatus) {
+					statStatus.textContent = isFull ? "OPTIMAL" : "CRITICAL";
+					statStatus.classList.remove("text-[#69b2ff]", "text-[#ff7349]");
+					statStatus.classList.add(isFull ? "text-[#69b2ff]" : "text-[#ff7349]");
+				}
+
+				const btn = document.querySelector(".action-btn");
+				if (btn) {
+					btn.className = `action-btn ${isFull ? "bg-[#69b2ff]/20 hover:bg-[#69b2ff]/30 text-[#69b2ff]" : "bg-[#ff7349]/20 hover:bg-[#ff7349]/30 text-[#ff7349]"}`;
+				}
+			}
+
+			// Exécuter lors du chargement de la page
+			updateUIFromParams();
+
 			// Mousedown pour la zone de drag via IPC (similaire au Dashboard)
 			document.body.addEventListener("mousedown", (e: MouseEvent) => {
 				// Ignorer le clic s'il provient d'un bouton pour qu'il puisse être cliqué

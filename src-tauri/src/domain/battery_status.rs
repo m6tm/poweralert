@@ -22,4 +22,8 @@ pub struct BatteryInfo {
     pub is_plugged_in: bool,
     /// État précis de la charge (Chargement, Déchargement, Pleine, Inconnu).
     pub state: ChargingState,
+    /// Température actuelle de la batterie en degrés Celsius (si disponible).
+    pub temperature: Option<f32>,
+    /// Puissance instantanée consommée ou reçue en Watts (si disponible).
+    pub power_usage: Option<f32>,
 }

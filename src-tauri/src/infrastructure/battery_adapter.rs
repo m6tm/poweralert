@@ -45,10 +45,19 @@ impl BatteryPort for BatteryAdapter {
             // La batterie est considérée comme "branchée" si elle charge ou si elle est pleine.
             let is_plugged_in = matches!(state, ChargingState::Charging | ChargingState::Full);
 
+            // Récupération de la température (Kelvin -> Celsius)
+            let temperature = battery.temperature()
+                .map(|t| (t.value - 273.15) as f32);
+            
+            // Récupération de la puissance (Watts)
+            let power_usage = Some(battery.energy_rate().value as f32);
+
             Ok(BatteryInfo {
                 percentage,
                 is_plugged_in,
                 state,
+                temperature,
+                power_usage,
             })
         } else {
             Err("Aucune batterie n'a été détectée par le système".to_string())
