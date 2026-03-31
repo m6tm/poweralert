@@ -1,5 +1,5 @@
 use crate::application::battery_use_case::GetBatteryStatusUseCase;
-use crate::domain::battery_alert::AlertService;
+use crate::domain::battery_alert::{AlertService, AlertType};
 use crate::domain::battery_port::BatteryPort;
 use log::{info, warn};
 use std::time::Duration;
@@ -33,6 +33,7 @@ impl BatteryMonitorService {
             let mut last_percentage: Option<f32> = None;
             let mut last_temperature: Option<f32> = None;
             let mut last_power: Option<f32> = None;
+            let mut last_alert_type: Option<AlertType> = None; // Suivi pour éviter les alertes en boucle
             let mut ticks_since_last_report = 240; // Rapport de survie toutes les minute (240 * 250ms = 60s)
 
             loop {
@@ -61,19 +62,19 @@ impl BatteryMonitorService {
                         last_temperature = info_battery.temperature;
                         last_power = info_battery.power_usage;
                         ticks_since_last_report = 0;
-                        Self::process_check_with_info(Some(&app_handle), &info_battery);
+                        last_alert_type = Self::process_check_with_info(Some(&app_handle), &info_battery, last_alert_type);
                     } else {
                         ticks_since_last_report += 1;
                         if ticks_since_last_report >= 240 { // Log toutes les 60s
                             ticks_since_last_report = 0;
-                            Self::process_check_with_info(Some(&app_handle), &info_battery);
+                            last_alert_type = Self::process_check_with_info(Some(&app_handle), &info_battery, last_alert_type);
                         }
                     }
                 } else {
                     ticks_since_last_report += 1;
                     if ticks_since_last_report >= 240 {
                         ticks_since_last_report = 0;
-                        Self::process_check(Some(&app_handle), &get_status_use_case);
+                        last_alert_type = Self::process_check(Some(&app_handle), &get_status_use_case, last_alert_type);
                     }
                 }
             }
@@ -84,7 +85,8 @@ impl BatteryMonitorService {
     fn process_check_with_info(
         app_handle: Option<&AppHandle>,
         info_battery: &crate::domain::battery_status::BatteryInfo,
-    ) {
+        last_alert_type: Option<AlertType>,
+    ) -> Option<AlertType> {
         info!(
             "Niveau de batterie : {:.0}% (Secteur: {})",
             info_battery.percentage, info_battery.is_plugged_in
@@ -105,16 +107,26 @@ impl BatteryMonitorService {
         };
 
         // Vérification des alertes avec les seuils configurés
-        if let Some(alert) = AlertService::check_for_alerts(
+        let current_alert = AlertService::check_for_alerts(
             info_battery,
             config.low_threshold,
             config.high_threshold,
-        ) {
-            warn!("Alerte détectée : {:?}", alert.alert_type);
-            // Émission de l'alerte au frontend si disponible
-            if let Some(handle) = app_handle {
-                let _ = handle.emit("battery-alert", alert);
+        );
+
+        match current_alert {
+            Some(alert) => {
+                // N'émet l'alerte que si elle est différente de la précédente
+                if Some(alert.alert_type.clone()) != last_alert_type {
+                    warn!("Alerte détectée : {:?}", alert.alert_type);
+                    if let Some(handle) = app_handle {
+                        let _ = handle.emit("battery-alert", alert.clone());
+                    }
+                    Some(alert.alert_type)
+                } else {
+                    last_alert_type
+                }
             }
+            None => None,
         }
     }
 
@@ -122,14 +134,16 @@ impl BatteryMonitorService {
     fn process_check<P: BatteryPort>(
         app_handle: Option<&AppHandle>,
         use_case: &GetBatteryStatusUseCase<P>,
-    ) {
+        last_alert_type: Option<AlertType>,
+    ) -> Option<AlertType> {
         match use_case.execute() {
-            Ok(info_battery) => Self::process_check_with_info(app_handle, &info_battery),
+            Ok(info_battery) => Self::process_check_with_info(app_handle, &info_battery, last_alert_type),
             Err(e) => {
                 warn!(
                     "Erreur lors de la récupération de l'état de la batterie : {}",
                     e
                 );
+                last_alert_type
             }
         }
     }
@@ -172,7 +186,7 @@ mod tests {
         let use_case = GetBatteryStatusUseCase::new(port);
 
         // On vérifie que la méthode s'exécute sans paniquer
-        BatteryMonitorService::process_check(None, &use_case);
+        BatteryMonitorService::process_check(None, &use_case, None);
     }
 
     #[test]
@@ -184,7 +198,7 @@ mod tests {
         let use_case = GetBatteryStatusUseCase::new(port);
 
         // On vérifie que l'erreur est capturée correctement sans crash
-        BatteryMonitorService::process_check(None, &use_case);
+        BatteryMonitorService::process_check(None, &use_case, None);
     }
 
     #[test]
@@ -203,6 +217,6 @@ mod tests {
         let use_case = GetBatteryStatusUseCase::new(port);
 
         // La logique d'appel à AlertService est validée si l'exécution suit le chemin nominal
-        BatteryMonitorService::process_check(None, &use_case);
+        BatteryMonitorService::process_check(None, &use_case, None);
     }
 }

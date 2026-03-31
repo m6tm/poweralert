@@ -38,6 +38,8 @@ mod tests {
                 percentage: 85.0,
                 is_plugged_in: true,
                 state: ChargingState::Charging,
+                temperature: None,
+                power_usage: None,
             })
         }
     }
