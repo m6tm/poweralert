@@ -206,28 +206,40 @@ import '../styles/global.css';
 			function updateTrayBattery(info: BatteryInfo) {
 				const pctLabel = document.querySelector(".battery-pct");
 				const indicator = document.querySelector(".status-indicator");
-				const values = document.querySelectorAll(".stat-item .value");
+				const tempLabel = document.getElementById("tray-temp");
+				const powerLabel = document.getElementById("tray-power");
 
-				if (pctLabel) pctLabel.textContent = `${Math.round(info.percentage)}%`;
+				if (pctLabel) {
+					pctLabel.textContent = info.percentage !== undefined ? `${Math.round(info.percentage)}%` : "--%";
+				}
+
 				if (indicator) {
 					if (info.is_plugged_in) indicator.classList.add("charging");
 					else indicator.classList.remove("charging");
 				}
 
-				// Mise à jour de la température (index 0)
-				if (values[0] && info.temperature !== undefined && info.temperature !== null) {
-					values[0].textContent = `${Math.round(info.temperature)}°C`;
+				// Mise à jour de la température
+				if (tempLabel) {
+					if (info.temperature !== undefined && info.temperature !== null && !isNaN(info.temperature)) {
+						tempLabel.textContent = `${Math.round(info.temperature)}°C`;
+					} else {
+						tempLabel.textContent = "--";
+					}
 				}
 
-				// Mise à jour de la puissance (index 1)
-				if (values[1] && info.power_usage !== undefined && info.power_usage !== null) {
-					values[1].textContent = `${Math.abs(info.power_usage).toFixed(1)}W`;
+				// Mise à jour de la puissance
+				if (powerLabel) {
+					if (info.power_usage !== undefined && info.power_usage !== null && !isNaN(info.power_usage)) {
+						powerLabel.textContent = `${Math.abs(info.power_usage).toFixed(1)}W`;
+					} else {
+						powerLabel.textContent = "--";
+					}
 				}
 			}
 
 			// Actions du Menu
 			document.getElementById("open-dashboard")?.addEventListener("click", () => {
-				invoke("open_dashboard"); // Supposons qu'on ajoute cette commande ou qu'on gère ça via un autre mécanisme
+				invoke("open_dashboard");
 			});
 
 			document.getElementById("quit")?.addEventListener("click", () => {
