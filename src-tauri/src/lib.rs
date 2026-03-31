@@ -80,6 +80,14 @@ pub fn run() {
       // Démarrage de la surveillance asynchrone de la batterie avec l'adaptateur système
       BatteryMonitorService::start_monitoring(app.handle().clone(), BatteryAdapter::new());
       
+      // Configuration initiale de la fenêtre principale selon les préférences
+      let config = GetConfigUseCase::new(ConfigAdapter::new(&app.handle())).execute().unwrap_or_default();
+      if config.start_minimized {
+          if let Some(window) = app.get_webview_window("main") {
+              let _ = window.hide();
+          }
+      }
+      
       // Écouteur global pour les alertes de batterie afin d'ouvrir la fenêtre de notification
       let handle = app.handle().clone();
       app.listen("battery-alert", move |event| {

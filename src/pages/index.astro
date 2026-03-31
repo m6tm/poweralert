@@ -346,6 +346,18 @@ import "../styles/global.css";
 						<div class="toggle-thumb"></div>
 					</div>
 				</div>
+
+				<!-- Start Minimized Toggle -->
+				<div class="setting-toggle-item">
+					<label
+						class="setting-label"
+						style="max-width: 200px; text-transform:none;"
+						>Démarrer l'application en mode réduit</label
+					>
+					<div class="toggle-switch" id="minimized-toggle">
+						<div class="toggle-thumb"></div>
+					</div>
+				</div>
 			</section>
 
 			<footer class="window-footer">
@@ -407,6 +419,7 @@ import "../styles/global.css";
 				low_threshold: number;
 				high_threshold: number;
 				run_at_startup: boolean;
+				start_minimized: boolean;
 			}
 
 			// Mise à jour de l'affichage de la batterie
@@ -551,6 +564,7 @@ import "../styles/global.css";
 				low_threshold: 50,
 				high_threshold: 100,
 				run_at_startup: false,
+				start_minimized: false,
 			};
 
 			async function saveCurrentConfig() {
@@ -594,13 +608,24 @@ import "../styles/global.css";
 				},
 			);
 
-			// Gestion du Toggle
+			// Gestion du Toggle Démarrage
 			const startupToggle = document.getElementById("startup-toggle");
 			if (startupToggle) {
 				startupToggle.addEventListener("click", () => {
 					startupToggle.classList.toggle("active");
 					currentConfig.run_at_startup =
 						startupToggle.classList.contains("active");
+					saveCurrentConfig();
+				});
+			}
+
+			// Gestion du Toggle Minimisé
+			const minimizedToggle = document.getElementById("minimized-toggle");
+			if (minimizedToggle) {
+				minimizedToggle.addEventListener("click", () => {
+					minimizedToggle.classList.toggle("active");
+					currentConfig.start_minimized =
+						minimizedToggle.classList.contains("active");
 					saveCurrentConfig();
 				});
 			}
@@ -618,6 +643,11 @@ import "../styles/global.css";
 						if (config.run_at_startup)
 							startupToggle.classList.add("active");
 						else startupToggle.classList.remove("active");
+					}
+					if (minimizedToggle) {
+						if (config.start_minimized)
+							minimizedToggle.classList.add("active");
+						else minimizedToggle.classList.remove("active");
 					}
 
 					// 2. Charger l'état actuel de la batterie
