@@ -71,6 +71,8 @@ mod tests {
             percentage: 50.0,
             is_plugged_in: false,
             state: ChargingState::Discharging,
+            temperature: None,
+            power_usage: None,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
         assert!(alert.is_some());
@@ -83,6 +85,8 @@ mod tests {
             percentage: 40.0,
             is_plugged_in: true,
             state: ChargingState::Charging,
+            temperature: None,
+            power_usage: None,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
         assert!(alert.is_none());
@@ -94,6 +98,8 @@ mod tests {
             percentage: 100.0,
             is_plugged_in: true,
             state: ChargingState::Full,
+            temperature: None,
+            power_usage: None,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
         assert!(alert.is_some());
@@ -106,6 +112,8 @@ mod tests {
             percentage: 50.0,
             is_plugged_in: false,
             state: ChargingState::Discharging,
+            temperature: None,
+            power_usage: None,
         };
         let alert = AlertService::check_with_defaults(&info);
         assert!(alert.is_some());
@@ -118,6 +126,8 @@ mod tests {
             percentage: 50.1,
             is_plugged_in: false,
             state: ChargingState::Discharging,
+            temperature: None,
+            power_usage: None,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
         assert!(alert.is_none());
@@ -129,6 +139,8 @@ mod tests {
             percentage: 99.9,
             is_plugged_in: true,
             state: ChargingState::Charging,
+            temperature: None,
+            power_usage: None,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
         assert!(alert.is_none());
@@ -140,6 +152,8 @@ mod tests {
             percentage: 100.0,
             is_plugged_in: false,
             state: ChargingState::Discharging,
+            temperature: None,
+            power_usage: None,
         };
         let alert = AlertService::check_for_alerts(&info, 50.0, 100.0);
         assert!(alert.is_none());

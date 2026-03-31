@@ -32,35 +32,27 @@ const buttonBg = isFull
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
 			rel="stylesheet"
 		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-			rel="stylesheet"
-		/>
 	</head>
 	<body class="notification-body">
 		<article
 			class={`notification-card glass-panel ${borderClass}`}
 		>
 			<div class="card-content">
-				<div class="icon-container" class:list={[badgeBg]}>
-					<span
-						class="material-symbols-outlined"
-						class:list={[
-							isFull ? "text-[#69b2ff]" : "text-[#ff7349]",
-						]}
-						style="font-variation-settings: 'FILL' 1; font-size: 24px;"
-					>
-						{icon}
-					</span>
+				<div class="icon-container" class:list={[badgeBg]} id="alert-icon-container">
+					<!-- SVG injecté via JS ou rendu initial -->
+					<div id="icon-svg-wrapper">
+						{isFull ? (
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#69b2ff]"><path d="M5 18H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"></path><path d="M19 6h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2"></path><path d="m11 7-3 5h4l-3 5"></path><line x1="9" y1="6" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="18"></line></svg>
+						) : (
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#ff7349]"><rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect><line x1="22" y1="11" x2="22" y2="13"></line><line x1="6" y1="11" x2="6" y2="13"></line></svg>
+						)}
+					</div>
 				</div>
 				<div class="text-content">
 					<div class="header">
 						<h2 class="title">{title}</h2>
-						<button class="close-btn" aria-label="Fermer">
-							<span
-								class="material-symbols-outlined"
-								style="font-size: 16px;">close</span
-							>
+						<button class="close-btn" aria-label="Fermer" id="close-notification-btn">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 						</button>
 					</div>
 					<p class="message">{message}</p>
@@ -243,16 +235,16 @@ const buttonBg = isFull
 					article.classList.add(isFull ? "border-l-[#69b2ff]" : "border-l-[#ff7349]");
 				}
 
-				const iconContainer = document.querySelector(".icon-container");
+				const iconContainer = document.getElementById("alert-icon-container");
 				if (iconContainer) {
 					iconContainer.className = "icon-container " + (isFull ? "bg-[#69b2ff]/10" : "bg-[#ff7349]/10");
 				}
 
-				const icon = document.querySelector(".icon-container span");
-				if (icon) {
-					icon.textContent = isFull ? "battery_charging_full" : "battery_low";
-					icon.classList.remove("text-[#69b2ff]", "text-[#ff7349]");
-					icon.classList.add(isFull ? "text-[#69b2ff]" : "text-[#ff7349]");
+				const iconWrapper = document.getElementById("icon-svg-wrapper");
+				if (iconWrapper) {
+					const fullSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#69b2ff]"><path d="M5 18H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"></path><path d="M19 6h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2"></path><path d="m11 7-3 5h4l-3 5"></path><line x1="9" y1="6" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="18"></line></svg>`;
+					const lowSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-[#ff7349]"><rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect><line x1="22" y1="11" x2="22" y2="13"></line><line x1="6" y1="11" x2="6" y2="13"></line></svg>`;
+					iconWrapper.innerHTML = isFull ? fullSvg : lowSvg;
 				}
 
 				const titleElem = document.querySelector(".title");
@@ -295,7 +287,7 @@ const buttonBg = isFull
 			});
 
 			document
-				.querySelector(".close-btn")
+				.getElementById("close-notification-btn")
 				?.addEventListener("click", () => {
 					appWindow.close();
 				});
