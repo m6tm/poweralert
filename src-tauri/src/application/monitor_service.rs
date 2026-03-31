@@ -25,41 +25,53 @@ impl BatteryMonitorService {
         // contrairement à tokio::spawn qui requiert un runtime déjà initialisé.
         tauri::async_runtime::spawn(async move {
             let get_status_use_case = GetBatteryStatusUseCase::new(port);
-            let mut interval = tokio::time::interval(Duration::from_secs(1)); // Vérification rapide (1s)
+            let mut interval = tokio::time::interval(Duration::from_millis(250)); // Surveillance haute fréquence (250ms)
 
-            info!("Démarrage du cycle de surveillance de la batterie (1s de réactivité sur les changements d'état/pourcentage, log de survie toutes les 60s).");
+            info!("Démarrage du cycle de surveillance en temps réel (250ms).");
 
             let mut last_plugged_state: Option<bool> = None;
             let mut last_percentage: Option<f32> = None;
-            let mut ticks_since_last_report = 60; // Forcer le rapport initial
+            let mut last_temperature: Option<f32> = None;
+            let mut last_power: Option<f32> = None;
+            let mut ticks_since_last_report = 240; // Rapport de survie toutes les minute (240 * 250ms = 60s)
 
             loop {
                 interval.tick().await;
 
                 if let Ok(info_battery) = get_status_use_case.execute() {
                     let plugged_changed = last_plugged_state != Some(info_battery.is_plugged_in);
-                    // Détecter un changement significatif de pourcentage (plus de 0.1% de différence pour éviter le bruit au niveau de f32)
+                    
                     let pct_changed = last_percentage
                         .map(|last_pct| (last_pct - info_battery.percentage).abs() >= 0.1)
                         .unwrap_or(true);
                     
-                    let state_changed = plugged_changed || pct_changed;
+                    let temp_changed = last_temperature
+                        .map(|last_t| (last_t - info_battery.temperature.unwrap_or(0.0)).abs() >= 0.1)
+                        .unwrap_or(true);
+                    
+                    let power_changed = last_power
+                        .map(|last_p| (last_p - info_battery.power_usage.unwrap_or(0.0)).abs() >= 0.1)
+                        .unwrap_or(true);
+
+                    let state_changed = plugged_changed || pct_changed || temp_changed || power_changed;
 
                     if state_changed {
                         last_plugged_state = Some(info_battery.is_plugged_in);
                         last_percentage = Some(info_battery.percentage);
+                        last_temperature = info_battery.temperature;
+                        last_power = info_battery.power_usage;
                         ticks_since_last_report = 0;
                         Self::process_check_with_info(Some(&app_handle), &info_battery);
                     } else {
                         ticks_since_last_report += 1;
-                        if ticks_since_last_report >= 60 {
+                        if ticks_since_last_report >= 240 { // Log toutes les 60s
                             ticks_since_last_report = 0;
                             Self::process_check_with_info(Some(&app_handle), &info_battery);
                         }
                     }
                 } else {
                     ticks_since_last_report += 1;
-                    if ticks_since_last_report >= 60 {
+                    if ticks_since_last_report >= 240 {
                         ticks_since_last_report = 0;
                         Self::process_check(Some(&app_handle), &get_status_use_case);
                     }
@@ -150,6 +162,8 @@ mod tests {
             percentage: 75.0,
             is_plugged_in: false,
             state: ChargingState::Discharging,
+            temperature: Some(30.0),
+            power_usage: Some(10.0),
         };
         let port = MockBatteryPort {
             info: Some(mock_info),
@@ -179,6 +193,8 @@ mod tests {
             percentage: 10.0,
             is_plugged_in: false,
             state: ChargingState::Discharging,
+            temperature: Some(35.0),
+            power_usage: Some(15.0),
         };
         let port = MockBatteryPort {
             info: Some(low_battery_info),
