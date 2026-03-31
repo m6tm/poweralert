@@ -63,13 +63,18 @@ fn terminate_app(app_handle: tauri::AppHandle) {
 pub fn run() {
   tauri::Builder::default()
     .setup(|app| {
-      if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-      }
+      // Configuration du logger : Info en debug, Error seulement en release (pour limiter les logs console)
+      let log_level = if cfg!(debug_assertions) {
+        log::LevelFilter::Info
+      } else {
+        log::LevelFilter::Error
+      };
+      
+      app.handle().plugin(
+        tauri_plugin_log::Builder::default()
+          .level(log_level)
+          .build(),
+      )?;
 
       // Initialisation du plugin de lancement automatique (Windows registry)
       app.handle().plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))?;
