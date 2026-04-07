@@ -7,6 +7,10 @@ use tauri::{AppHandle, Emitter};
 use crate::infrastructure::config_adapter::ConfigAdapter;
 use crate::application::config_use_case::GetConfigUseCase;
 use crate::domain::config::AppConfig;
+use crate::infrastructure::analytics_adapter::AnalyticsAdapter;
+use crate::application::analytics_use_case::RecordSnapshotUseCase;
+use crate::domain::battery_analytics::BatterySnapshot;
+use crate::application::battery_use_case::GetBatteryHealthUseCase;
 
 /// Service responsable de la surveillance périodique de l'état de la batterie.
 pub struct BatteryMonitorService;
@@ -17,15 +21,17 @@ impl BatteryMonitorService {
     /// # Arguments
     /// * `app_handle` - Le handle de l'application Tauri pour émettre des événements.
     /// * `port` - L'implémentation du port de batterie à utiliser.
-    pub fn start_monitoring<P: BatteryPort + Send + Sync + 'static>(
+    pub fn start_monitoring<P: BatteryPort + Send + Sync + 'static + Clone>(
         app_handle: AppHandle,
         port: P,
     ) {
         // tauri::async_runtime::spawn est toujours disponible dans le contexte Tauri,
         // contrairement à tokio::spawn qui requiert un runtime déjà initialisé.
         tauri::async_runtime::spawn(async move {
-            let get_status_use_case = GetBatteryStatusUseCase::new(port);
+            let get_status_use_case = GetBatteryStatusUseCase::new(port.clone());
+            let get_health_use_case = GetBatteryHealthUseCase::new(port.clone());
             let mut interval = tokio::time::interval(Duration::from_millis(250)); // Surveillance haute fréquence (250ms)
+            let mut snapshot_ticks = 0;
 
             info!("Démarrage du cycle de surveillance en temps réel (250ms).");
 
@@ -38,8 +44,23 @@ impl BatteryMonitorService {
 
             loop {
                 interval.tick().await;
+                snapshot_ticks += 1;
 
                 if let Ok(info_battery) = get_status_use_case.execute() {
+                    // Logique de snapshot : toutes les 10 minutes (2400 ticks)
+                    if snapshot_ticks >= 2400 {
+                        snapshot_ticks = 0;
+                        let health = get_health_use_case.execute().ok();
+                        let snapshot = BatterySnapshot::now(
+                            info_battery.percentage,
+                            None, // Autonomie estimée à implémenter si disponible
+                            health.and_then(|h| h.wear_level),
+                        );
+                        let adapter = AnalyticsAdapter::new(&app_handle);
+                        let use_case = RecordSnapshotUseCase::new(adapter);
+                        let _ = use_case.execute(snapshot);
+                    }
+
                     let plugged_changed = last_plugged_state != Some(info_battery.is_plugged_in);
                     
                     let pct_changed = last_percentage
@@ -167,6 +188,10 @@ mod tests {
                 return Err(err.clone());
             }
             Ok(self.info.as_ref().cloned().unwrap())
+        }
+
+        fn get_health(&self) -> Result<crate::domain::battery_health::BatteryHealth, String> {
+             Ok(crate::domain::battery_health::BatteryHealth::new(None, None, None))
         }
     }
 

@@ -65,6 +65,87 @@ import "../styles/global.css";
 				padding: 0;
 			}
 
+			.view-nav {
+				display: flex;
+				gap: 16px;
+				margin-top: 24px;
+				padding: 0 32px;
+				flex-shrink: 0;
+			}
+
+			.nav-item {
+				font-size: 0.7rem;
+				font-weight: 700;
+				color: #aaaab2;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				cursor: pointer;
+				padding-bottom: 6px;
+				border-bottom: 2px solid transparent;
+				transition: all 0.2s;
+			}
+
+			.nav-item.active {
+				color: #5dfd8c;
+				border-bottom-color: #5dfd8c;
+			}
+
+			.view-container {
+				flex: 1;
+				display: none;
+				flex-direction: column;
+				overflow: hidden;
+			}
+
+			.view-container.active {
+				display: flex;
+			}
+
+			.analytics-content {
+				padding: 0 32px 32px 32px;
+				display: flex;
+				flex-direction: column;
+				gap: 24px;
+				overflow-y: auto;
+				height: 100%;
+			}
+
+			.chart-container {
+				background: rgba(255, 255, 255, 0.02);
+				border: 1px solid rgba(255, 255, 255, 0.05);
+				border-radius: 12px;
+				padding: 20px;
+				height: 200px;
+				position: relative;
+			}
+
+			.chart-title {
+				font-size: 0.65rem;
+				font-weight: 700;
+				color: #aaaab2;
+				text-transform: uppercase;
+				margin-bottom: 16px;
+				display: block;
+			}
+
+			canvas {
+				width: 100%;
+				height: 140px;
+			}
+
+			.stat-grid {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 12px;
+			}
+
+			.stat-card {
+				background: rgba(255, 255, 255, 0.02);
+				border: 1px solid rgba(255, 255, 255, 0.05);
+				padding: 16px;
+				border-radius: 12px;
+			}
+
 			.battery-section {
 				display: flex;
 				justify-content: center;
@@ -439,7 +520,14 @@ import "../styles/global.css";
 				</button>
 			</header>
 
-			<section class="battery-section">
+			<nav class="view-nav">
+				<div class="nav-item active" data-view="dashboard">Dashboard</div>
+				<div class="nav-item" data-view="analytics">Analyses</div>
+			</nav>
+
+			<!-- Vue Dashboard -->
+			<div id="dashboard-view" class="view-container active">
+				<section class="battery-section">
 				<div class="battery-ring" id="battery-ring">
 					<div class="ring-core">
 						<span class="battery-value" id="battery-value">--%</span
@@ -739,6 +827,39 @@ import "../styles/global.css";
 					</p>
 				</footer>
 			</div>
+
+			<!-- Vue Analytics -->
+			<div id="analytics-view" class="view-container">
+				<div class="analytics-content">
+					<div class="chart-container">
+						<span class="chart-title"
+							>Évolution de l'autonomie (minutes)</span
+						>
+						<canvas id="autonomy-chart"></canvas>
+					</div>
+
+					<div class="chart-container">
+						<span class="chart-title">Évolution de la charge (%)</span
+						>
+						<canvas id="charge-chart"></canvas>
+					</div>
+
+					<div class="stat-grid">
+						<div class="stat-card">
+							<span class="health-label"
+								>Autonomie Max Constatée</span
+							>
+							<div class="health-value" id="max-autonomy">
+								-- min
+							</div>
+						</div>
+						<div class="stat-card">
+							<span class="health-label">Usure Moyenne</span>
+							<div class="health-value" id="avg-wear">-- %</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</main>
 
 		<script>
@@ -746,17 +867,45 @@ import "../styles/global.css";
 			import { listen } from "@tauri-apps/api/event";
 			import { getCurrentWindow } from "@tauri-apps/api/window";
 
+			// Gestion de la navigation par onglets
+			const navItems = document.querySelectorAll(".nav-item");
+			const views = document.querySelectorAll(".view-container");
+
+			navItems.forEach((item) => {
+				item.addEventListener("click", () => {
+					const targetView = (item as HTMLElement).dataset.view;
+
+					// Update active nav
+					navItems.forEach((n) => n.classList.remove("active"));
+					item.classList.add("active");
+
+					// Update active view
+					views.forEach((v) => v.classList.remove("active"));
+					const activeView = document.getElementById(
+						`${targetView}-view`,
+					);
+					if (activeView) {
+						activeView.classList.add("active");
+						if (targetView === "analytics") {
+							updateAnalyticsUI();
+						}
+					}
+				});
+			});
+
 			// Activation du drag natif via l'API Tauri (fiable avec decorations: false)
 			const appWindow = getCurrentWindow();
 			// Zone de déplacement (Dragging) customisée
 			// On écoute sur `document.body` pour couvrir tout le haut de la fenêtre (y compris le padding)
 			document.body.addEventListener("mousedown", (e: MouseEvent) => {
 				// Condition : Clic se trouvant de 0 jusqu'à ~70px (zone du titre + headers + marges)
-				if (e.clientY <= 70) {
+				if (e.clientY <= 90) {
+					// Étendu à 90 pour couvrir la nav
 					// Ignorer le clic sur des boutons ou sliders pour ne pas bloquer les intéractions UI natives
 					if (
 						(e.target as HTMLElement).closest("button") ||
-						(e.target as HTMLElement).closest(".slider-container")
+						(e.target as HTMLElement).closest(".slider-container") ||
+						(e.target as HTMLElement).closest(".view-nav")
 					) {
 						return;
 					}
@@ -1171,6 +1320,128 @@ import "../styles/global.css";
 				batteryRing.addEventListener("mouseleave", () => {
 					batteryRing.style.transform = "scale(1)";
 				});
+			}
+
+			// --- ANALYTICS LOGIC ---
+			interface BatterySnapshot {
+				timestamp: number;
+				percentage: number;
+				autonomy_minutes: number | null;
+				wear_level: number | null;
+			}
+
+			async function updateAnalyticsUI() {
+				try {
+					const snapshots = (await invoke(
+						"get_battery_analytics",
+					)) as BatterySnapshot[];
+					if (!snapshots || snapshots.length === 0) return;
+
+					// 1. Dessiner les graphiques
+					const autonomyChart = document.getElementById(
+						"autonomy-chart",
+					) as HTMLCanvasElement;
+					const chargeChart = document.getElementById(
+						"charge-chart",
+					) as HTMLCanvasElement;
+
+					if (autonomyChart && chargeChart) {
+						// On ajuste le canvas à la taille du conteneur
+						autonomyChart.width = autonomyChart.offsetWidth;
+						autonomyChart.height = autonomyChart.offsetHeight;
+						chargeChart.width = chargeChart.offsetWidth;
+						chargeChart.height = chargeChart.offsetHeight;
+
+						drawSimpleChart(
+							chargeChart,
+							snapshots.map((s) => s.percentage),
+							"#5dfd8c",
+						);
+						
+						// On utilise le niveau d'usure s'il change, ou le pourcentage pour la forme
+						drawSimpleChart(
+							autonomyChart,
+							snapshots.map((s) => s.percentage), // Fallback visuel
+							"#5dfd8c",
+						);
+					}
+
+					// 2. Mettre à jour les stats
+					const maxAutonomyEl = document.getElementById("max-autonomy");
+					const avgWearEl = document.getElementById("avg-wear");
+
+					if (maxAutonomyEl) {
+						maxAutonomyEl.textContent = "Calcul en cours...";
+					}
+
+					if (avgWearEl) {
+						const wearValues = snapshots
+							.map((s) => s.wear_level)
+							.filter((w) => w !== null) as number[];
+						const avgWear =
+							wearValues.length > 0
+								? wearValues.reduce((a, b) => a + b, 0) /
+									wearValues.length
+								: 0;
+						avgWearEl.textContent = `${avgWear.toFixed(1)} %`;
+					}
+				} catch (err) {
+					console.error("Erreur analytique:", err);
+				}
+			}
+
+			function drawSimpleChart(
+				canvas: HTMLCanvasElement,
+				data: number[],
+				color: string,
+			) {
+				const ctx = canvas.getContext("2d");
+				if (!ctx) return;
+
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+				if (data.length < 2) return;
+
+				const padding = 10;
+				const width = canvas.width - padding * 2;
+				const height = canvas.height - padding * 2;
+				const step = width / (data.length - 1);
+				const max = Math.max(...data, 100);
+
+				// Gradient de remplissage
+				const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+				gradient.addColorStop(0, `${color}44`);
+				gradient.addColorStop(1, `${color}00`);
+
+				ctx.beginPath();
+				ctx.moveTo(padding, padding + height);
+
+				data.forEach((val, i) => {
+					const x = padding + i * step;
+					const y = padding + height - (val / max) * height;
+					ctx.lineTo(x, y);
+				});
+
+				ctx.lineTo(padding + width, padding + height);
+				ctx.closePath();
+				ctx.fillStyle = gradient;
+				ctx.fill();
+
+				// Ligne principale
+				ctx.beginPath();
+				ctx.strokeStyle = color;
+				ctx.lineWidth = 3;
+				ctx.lineCap = "round";
+				ctx.lineJoin = "round";
+
+				data.forEach((val, i) => {
+					const x = padding + i * step;
+					const y = padding + height - (val / max) * height;
+					if (i === 0) ctx.moveTo(x, y);
+					else ctx.lineTo(x, y);
+				});
+
+				ctx.stroke();
 			}
 		</script>
 	</body>

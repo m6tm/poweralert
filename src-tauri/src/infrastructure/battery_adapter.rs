@@ -5,6 +5,7 @@ use crate::domain::battery_port::BatteryPort;
 
 /// Adaptateur d'infrastructure permettant d'accéder aux informations de la batterie via le système.
 /// Utilise la crate `battery` pour une compatibilité multiplateforme (dont Windows).
+#[derive(Clone)]
 pub struct BatteryAdapter;
 
 impl BatteryAdapter {

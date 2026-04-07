@@ -4,3 +4,5 @@ pub mod battery_alert;
 pub mod config;
 pub mod config_port;
 pub mod battery_health;
+pub mod battery_analytics;
+pub mod analytics_port;

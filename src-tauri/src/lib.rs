@@ -33,6 +33,14 @@ fn get_battery_health() -> Result<crate::domain::battery_health::BatteryHealth, 
 }
 
 #[tauri::command]
+/// Récupère l'historique analytique de la batterie.
+fn get_battery_analytics(app_handle: tauri::AppHandle) -> Result<Vec<crate::domain::battery_analytics::BatterySnapshot>, String> {
+    let adapter = crate::infrastructure::analytics_adapter::AnalyticsAdapter::new(&app_handle);
+    let use_case = crate::application::analytics_use_case::GetAnalyticsUseCase::new(adapter);
+    use_case.execute()
+}
+
+#[tauri::command]
 /// Récupère la configuration actuelle de l'application.
 fn get_config(app_handle: tauri::AppHandle) -> Result<AppConfig, String> {
     let adapter = ConfigAdapter::new(&app_handle);
@@ -223,6 +231,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
       get_battery_status,
       get_battery_health,
+      get_battery_analytics,
       get_config,
       save_config,
       open_dashboard,
