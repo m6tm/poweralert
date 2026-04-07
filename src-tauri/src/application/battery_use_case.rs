@@ -19,6 +19,23 @@ impl<P: BatteryPort> GetBatteryStatusUseCase<P> {
     }
 }
 
+/// Cas d'utilisation permettant de récupérer la santé de la batterie.
+pub struct GetBatteryHealthUseCase<P: BatteryPort> {
+    port: P,
+}
+
+impl<P: BatteryPort> GetBatteryHealthUseCase<P> {
+    /// Crée une nouvelle instance du cas d'utilisation avec un port donné.
+    pub fn new(port: P) -> Self {
+        Self { port }
+    }
+
+    /// Exécute la logique de récupération de la santé de la batterie.
+    pub fn execute(&self) -> Result<crate::domain::battery_health::BatteryHealth, String> {
+        self.port.get_health()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -41,6 +58,17 @@ mod tests {
                 temperature: None,
                 power_usage: None,
             })
+        }
+
+        fn get_health(&self) -> Result<crate::domain::battery_health::BatteryHealth, String> {
+            if self.should_fail {
+                return Err("Erreur simulée".to_string());
+            }
+            Ok(crate::domain::battery_health::BatteryHealth::new(
+                Some(150),
+                Some(50000.0),
+                Some(45000.0),
+            ))
         }
     }
 

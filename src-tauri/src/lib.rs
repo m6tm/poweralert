@@ -14,14 +14,21 @@ use tauri::{Listener, WebviewUrl, WebviewWindowBuilder, Manager};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent};
 
 #[tauri::command]
-/// Récupère l'état actuel de la batterie via le cas d'utilisation GetBatteryStatusUseCase.
-///
-/// # Retourne
-/// * `Ok(BatteryInfo)` - Les informations sur la batterie (charge, état, etc.).
-/// * `Err(String)` - Un message d'erreur si la lecture échoue.
 fn get_battery_status() -> Result<BatteryInfo, String> {
     let adapter = BatteryAdapter::new();
     let use_case = GetBatteryStatusUseCase::new(adapter);
+    use_case.execute()
+}
+
+#[tauri::command]
+/// Récupère la santé de la batterie (cycles, usure, capacités).
+///
+/// # Retourne
+/// * `Ok(BatteryHealth)` - Les informations sur la santé physique de la batterie.
+/// * `Err(String)` - Un message d'erreur si la lecture échoue.
+fn get_battery_health() -> Result<crate::domain::battery_health::BatteryHealth, String> {
+    let adapter = BatteryAdapter::new();
+    let use_case = crate::application::battery_use_case::GetBatteryHealthUseCase::new(adapter);
     use_case.execute()
 }
 
@@ -215,6 +222,7 @@ pub fn run() {
     })
     .invoke_handler(tauri::generate_handler![
       get_battery_status,
+      get_battery_health,
       get_config,
       save_config,
       open_dashboard,

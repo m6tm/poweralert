@@ -22,28 +22,30 @@ import "../styles/global.css";
 				padding: 0;
 				overflow: hidden;
 				font-family: "Inter", sans-serif;
+				background-color: #171920;
 			}
 
 			.dashboard-window {
 				width: 440px;
 				height: 100vh;
 				background-color: #171920;
-				border-radius: 10px;
-				padding: 32px;
 				display: flex;
 				flex-direction: column;
-				gap: 32px;
+				border-radius: 10px;
 				box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
 				border: 1px solid rgba(255, 255, 255, 0.03);
 				z-index: 100;
 				position: relative;
 				user-select: none;
+				box-sizing: border-box;
 			}
 
 			.window-header {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				padding: 32px 32px 0 32px;
+				flex-shrink: 0;
 			}
 
 			.window-title {
@@ -66,6 +68,8 @@ import "../styles/global.css";
 			.battery-section {
 				display: flex;
 				justify-content: center;
+				padding: 24px 32px;
+				flex-shrink: 0;
 			}
 
 			.battery-ring {
@@ -231,18 +235,183 @@ import "../styles/global.css";
 				transform: translateX(22px);
 			}
 
-			.window-footer {
-				display: none;
-				margin-top: 8px;
-				opacity: 0.5;
-			}
-
 			.window-footer p {
 				font-size: 0.6rem;
 				color: #aaaab2;
 				text-align: center;
 				line-height: 1.5;
 				margin: 0;
+			}
+
+			/* Section Santé de la batterie */
+			.health-section {
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+			}
+
+			.health-grid {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 12px;
+			}
+
+			.health-card {
+				background: rgba(255, 255, 255, 0.02);
+				border: 1px solid rgba(255, 255, 255, 0.05);
+				padding: 12px;
+				border-radius: 12px;
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+				transition: border-color 0.2s;
+			}
+
+			.health-card:hover {
+				border-color: rgba(93, 253, 140, 0.2);
+			}
+
+			.health-label {
+				font-size: 0.55rem;
+				font-weight: 700;
+				color: #aaaab2;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+
+			.health-value {
+				font-size: 1rem;
+				font-weight: 800;
+				color: #f0f0f8;
+			}
+
+			.wear-info {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-end;
+			}
+
+			.wear-percentage {
+				font-size: 0.7rem;
+				font-weight: 700;
+				color: #5dfd8c;
+			}
+
+			.wear-gauge-container {
+				height: 4px;
+				background: #23262e;
+				border-radius: 2px;
+				margin-top: 6px;
+				overflow: hidden;
+			}
+
+			.wear-gauge-fill {
+				height: 100%;
+				background: #5dfd8c;
+				border-radius: 2px;
+				width: 0%;
+				transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+
+			/* Tooltips */
+			.help-icon {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 14px;
+				height: 14px;
+				border-radius: 50%;
+				background: rgba(255, 255, 255, 0.1);
+				color: #aaaab2;
+				font-size: 10px;
+				font-weight: 800;
+				cursor: help;
+				margin-left: 6px;
+				transition: all 0.2s;
+			}
+
+			.help-icon:hover {
+				background: rgba(93, 253, 140, 0.2);
+				color: #5dfd8c;
+			}
+
+			.has-tooltip {
+				position: relative;
+				display: flex;
+				align-items: center;
+			}
+
+			.tooltip {
+				position: absolute;
+				top: calc(100% + 10px);
+				left: 50%;
+				transform: translateX(-50%) translateY(-5px);
+				background: #23262e;
+				color: #f0f0f8;
+				padding: 10px 14px;
+				border-radius: 8px;
+				font-size: 0.65rem;
+				font-weight: 500;
+				line-height: 1.4;
+				width: 180px;
+				box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+				border: 1px solid rgba(255, 255, 255, 0.05);
+				pointer-events: none;
+				opacity: 0;
+				transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+				z-index: 1000;
+				text-align: center;
+			}
+
+			.tooltip::after {
+				content: "";
+				position: absolute;
+				bottom: 100%;
+				left: 50%;
+				transform: translateX(-50%);
+				border-width: 5px;
+				border-style: solid;
+				border-color: transparent transparent #23262e transparent;
+			}
+
+			.has-tooltip:hover .tooltip {
+				opacity: 1;
+				transform: translateX(-50%) translateY(0);
+			}
+
+			/* Contenu défilable */
+			.scrollable-content {
+				flex: 1;
+				overflow-y: auto;
+				padding: 8px 32px 32px 32px;
+				display: flex;
+				flex-direction: column;
+				gap: 32px;
+				/* Masquer la scrollbar par défaut sur Firefox */
+				scrollbar-width: thin;
+				scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+			}
+
+			/* Style de la scrollbar personnalisée (WebKit) */
+			.scrollable-content::-webkit-scrollbar {
+				width: 6px;
+			}
+
+			.scrollable-content::-webkit-scrollbar-track {
+				background: transparent;
+			}
+
+			.scrollable-content::-webkit-scrollbar-thumb {
+				background: rgba(255, 255, 255, 0.1);
+				border-radius: 10px;
+				border: 2px solid transparent;
+				background-clip: padding-box;
+			}
+
+			.scrollable-content::-webkit-scrollbar-thumb:hover {
+				background: rgba(93, 253, 140, 0.3);
+				border: 2px solid transparent;
+				background-clip: padding-box;
 			}
 		</style>
 	</head>
@@ -313,94 +482,263 @@ import "../styles/global.css";
 				</div>
 			</section>
 
-			<section class="settings-list">
-				<!-- Max Charge Alerte -->
-				<div class="setting-item">
-					<div class="setting-info">
-						<label class="setting-label"
-							>ALERTE DE CHARGE MAXIMALE (%)</label
+			<div class="scrollable-content">
+				<section class="health-section">
+					<div class="health-grid">
+						<!-- Cycles de charge -->
+						<div
+							class="health-card"
+							id="card-cycles"
+							style="display: none;"
 						>
-						<span class="setting-value" id="max-charge-val"
-							>100</span
-						>
-					</div>
-					<div class="slider-container" id="max-charge-slider">
-						<div class="slider-track">
-							<div
-								class="slider-fill"
-								id="max-charge-fill"
-								style="width: 100%;"
-							>
+							<div style="display: flex; align-items: center;">
+								<span class="health-label"
+									>Cycles de charge</span
+								>
+								<div
+									class="has-tooltip"
+									style="margin-left: 6px;"
+								>
+									<span
+										class="help-icon"
+										style="margin-left: 0;">?</span
+									>
+									<div class="tooltip">
+										Un cycle complet correspond à
+										l'utilisation cumulée de 100% de la
+										capacité totale.
+									</div>
+								</div>
 							</div>
-							<div
-								class="slider-thumb"
-								id="max-charge-thumb"
-								style="left: 100%;"
+							<span class="health-value" id="cycle-count">--</span
 							>
+						</div>
+
+						<!-- Usure réelle -->
+						<div
+							class="health-card"
+							id="card-wear"
+							style="display: none;"
+						>
+							<div class="wear-info">
+								<div
+									style="display: flex; align-items: center;"
+								>
+									<span class="health-label"
+										>Usure réelle</span
+									>
+									<div
+										class="has-tooltip"
+										style="margin-left: 6px;"
+									>
+										<span
+											class="help-icon"
+											style="margin-left: 0;">?</span
+										>
+										<div class="tooltip">
+											Perte de capacité par rapport à
+											l'état d'usine. Plus ce score est
+											bas, mieux c'est.
+										</div>
+									</div>
+								</div>
+								<span class="wear-percentage" id="wear-level"
+									>--%</span
+								>
+							</div>
+							<div class="wear-gauge-container">
+								<div class="wear-gauge-fill" id="wear-gauge">
+								</div>
+							</div>
+						</div>
+
+						<!-- Capacité Maximale -->
+						<div
+							class="health-card"
+							id="card-capacity"
+							style="display: none;"
+						>
+							<div class="wear-info">
+								<div
+									style="display: flex; align-items: center;"
+								>
+									<span class="health-label" id="label-cap"
+										>Capacité Maximale</span
+									>
+									<div
+										class="has-tooltip"
+										style="margin-left: 6px;"
+									>
+										<span
+											class="help-icon"
+											style="margin-left: 0; margin-right: 10px;"
+											>?</span
+										>
+										<div class="tooltip">
+											Rapport entre la charge maximale
+											actuelle et la capacité d'usine. Une
+											baisse indique que la batterie
+											stocke moins d'énergie.
+										</div>
+									</div>
+								</div>
+								<span class="wear-percentage" id="cap-ratio"
+									>-- / -- Wh</span
+								>
+							</div>
+							<div class="wear-gauge-container">
+								<div class="wear-gauge-fill" id="cap-gauge">
+								</div>
+							</div>
+						</div>
+
+						<!-- Température -->
+						<div
+							class="health-card"
+							id="card-temp"
+							style="display: none;"
+						>
+							<div style="display: flex; align-items: center;">
+								<span class="health-label">Température</span>
+								<div
+									class="has-tooltip"
+									style="margin-left: 6px;"
+								>
+									<span
+										class="help-icon"
+										style="margin-left: 0;">?</span
+									>
+									<div class="tooltip">
+										Température interne. Maintenir entre
+										20°C et 35°C pour une longévité
+										optimale. Évitez les pics > 45°C.
+									</div>
+								</div>
+							</div>
+							<span class="health-value" id="battery-temp"
+								>--°C</span
+							>
+						</div>
+
+						<!-- Consommation -->
+						<div
+							class="health-card"
+							id="card-power"
+							style="display: none;"
+						>
+							<div style="display: flex; align-items: center;">
+								<span class="health-label">Consommation</span>
+								<div
+									class="has-tooltip"
+									style="margin-left: 6px;"
+								>
+									<span
+										class="help-icon"
+										style="margin-left: 0;">?</span
+									>
+									<div class="tooltip">
+										Énergie utilisée par le système en temps
+										réel (Watts). Un chiffre élevé indique
+										une utilisation intensive.
+									</div>
+								</div>
+							</div>
+							<span class="health-value" id="power-usage"
+								>-- W</span
+							>
+						</div>
+					</div>
+				</section>
+
+				<section class="settings-list">
+					<!-- Max Charge Alerte -->
+					<div class="setting-item">
+						<div class="setting-info">
+							<label class="setting-label"
+								>ALERTE DE CHARGE MAXIMALE (%)</label
+							>
+							<span class="setting-value" id="max-charge-val"
+								>100</span
+							>
+						</div>
+						<div class="slider-container" id="max-charge-slider">
+							<div class="slider-track">
+								<div
+									class="slider-fill"
+									id="max-charge-fill"
+									style="width: 100%;"
+								>
+								</div>
+								<div
+									class="slider-thumb"
+									id="max-charge-thumb"
+									style="left: 100%;"
+								>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
 
-				<!-- Low Battery Alerte -->
-				<div class="setting-item">
-					<div class="setting-info">
-						<label class="setting-label"
-							>ALERTE DE BATTERIE FAIBLE (%)</label
-						>
-						<span class="setting-value" id="low-battery-val"
-							>50</span
-						>
-					</div>
-					<div class="slider-container" id="low-battery-slider">
-						<div class="slider-track">
-							<div
-								class="slider-fill"
-								id="low-battery-fill"
-								style="width: 50%;"
+					<!-- Low Battery Alerte -->
+					<div class="setting-item">
+						<div class="setting-info">
+							<label class="setting-label"
+								>ALERTE DE BATTERIE FAIBLE (%)</label
 							>
-							</div>
-							<div
-								class="slider-thumb"
-								id="low-battery-thumb"
-								style="left: 50%;"
+							<span class="setting-value" id="low-battery-val"
+								>50</span
 							>
+						</div>
+						<div class="slider-container" id="low-battery-slider">
+							<div class="slider-track">
+								<div
+									class="slider-fill"
+									id="low-battery-fill"
+									style="width: 50%;"
+								>
+								</div>
+								<div
+									class="slider-thumb"
+									id="low-battery-thumb"
+									style="left: 50%;"
+								>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
 
-				<!-- Desktop Sync Toggle -->
-				<div class="setting-toggle-item">
-					<label
-						class="setting-label"
-						style="max-width: 200px; text-transform:none;"
-						>Lancer PowerAlert au démarrage de Windows</label
-					>
-					<div class="toggle-switch active" id="startup-toggle">
-						<div class="toggle-thumb"></div>
+					<!-- Desktop Sync Toggle -->
+					<div class="setting-toggle-item">
+						<label
+							class="setting-label"
+							style="max-width: 200px; text-transform:none;"
+							>Lancer PowerAlert au démarrage de Windows</label
+						>
+						<div class="toggle-switch active" id="startup-toggle">
+							<div class="toggle-thumb"></div>
+						</div>
 					</div>
-				</div>
 
-				<!-- Start Minimized Toggle -->
-				<div class="setting-toggle-item">
-					<label
-						class="setting-label"
-						style="max-width: 200px; text-transform:none;"
-						>Démarrer l'application en mode réduit</label
-					>
-					<div class="toggle-switch" id="minimized-toggle">
-						<div class="toggle-thumb"></div>
+					<!-- Start Minimized Toggle -->
+					<div class="setting-toggle-item">
+						<label
+							class="setting-label"
+							style="max-width: 200px; text-transform:none;"
+							>Démarrer l'application en mode réduit</label
+						>
+						<div class="toggle-switch" id="minimized-toggle">
+							<div class="toggle-thumb"></div>
+						</div>
 					</div>
-				</div>
-			</section>
+				</section>
 
-			<footer class="window-footer">
-				<p>
-					Paramètres sauvegardés automatiquement. La fermeture réduit
-					l'application en arrière-plan.
-				</p>
-			</footer>
+				<footer class="window-footer" style="display: block;">
+					<p>
+						Paramètres sauvegardés automatiquement. La fermeture
+						réduit l'application en arrière-plan.
+					</p>
+				</footer>
+			</div>
 		</main>
 
 		<script>
@@ -448,6 +786,8 @@ import "../styles/global.css";
 				percentage: number;
 				is_plugged_in: boolean;
 				state: string;
+				temperature: number | null;
+				power_usage: number | null;
 			}
 
 			interface AppConfig {
@@ -457,14 +797,42 @@ import "../styles/global.css";
 				start_minimized: boolean;
 			}
 
+			interface BatteryHealth {
+				cycle_count: number | null;
+				design_capacity: number | null;
+				full_charge_capacity: number | null;
+				wear_level: number | null;
+			}
+
 			// Mise à jour de l'affichage de la batterie
 			function updateBatteryUI(info: BatteryInfo) {
 				const valueLabel = document.getElementById("battery-value");
 				const progress = document.getElementById("battery-progress");
 				const statusText = document.querySelector(".status-text");
-				const chargingIcon = document.querySelector(
-					".charging-status .material-symbols-outlined",
-				);
+
+				// Température
+				const tempLabel = document.getElementById("battery-temp");
+				const tempCard = document.getElementById("card-temp");
+				if (tempCard && tempLabel) {
+					if (info.temperature != null) {
+						tempLabel.textContent = `${Math.round(info.temperature)}°C`;
+						tempCard.style.display = "flex";
+					} else {
+						tempCard.style.display = "none";
+					}
+				}
+
+				// Puissance
+				const powerLabel = document.getElementById("power-usage");
+				const powerCard = document.getElementById("card-power");
+				if (powerCard && powerLabel) {
+					if (info.power_usage != null && info.power_usage !== 0) {
+						powerLabel.textContent = `${Math.abs(info.power_usage).toFixed(1)} W`;
+						powerCard.style.display = "flex";
+					} else {
+						powerCard.style.display = "none";
+					}
+				}
 
 				if (valueLabel)
 					valueLabel.textContent = `${Math.round(info.percentage)}%`;
@@ -497,6 +865,90 @@ import "../styles/global.css";
 					(chargingStatus as any).style.opacity = info.is_plugged_in
 						? "1"
 						: "0";
+			}
+
+			// Mise à jour de la santé de la batterie
+			function updateHealthUI(health: BatteryHealth) {
+				const cycleLabel = document.getElementById("cycle-count");
+				const cycleCard = document.getElementById("card-cycles");
+				const wearLabel = document.getElementById("wear-level");
+				const wearCard = document.getElementById("card-wear");
+				const wearGauge = document.getElementById(
+					"wear-gauge",
+				) as HTMLElement;
+
+				// Capacité
+				const capLabel = document.getElementById("cap-ratio");
+				const capCard = document.getElementById("card-capacity");
+				const capGauge = document.getElementById(
+					"cap-gauge",
+				) as HTMLElement;
+
+				if (capCard && capLabel) {
+					if (
+						health.full_charge_capacity != null &&
+						health.design_capacity != null
+					) {
+						const currentWh = health.full_charge_capacity / 1000;
+						const designWh = health.design_capacity / 1000;
+
+						capLabel.textContent = `${currentWh.toFixed(1)} / ${designWh.toFixed(0)} Wh`;
+						capCard.style.display = "flex";
+
+						if (capGauge) {
+							const healthPercent =
+								(health.full_charge_capacity /
+									health.design_capacity) *
+								100;
+							capGauge.style.width = `${healthPercent}%`;
+
+							// Couleur de la jauge
+							if (healthPercent < 70)
+								capGauge.style.background = "#ff4d4d";
+							else if (healthPercent < 85)
+								capGauge.style.background = "#ff9f43";
+							else capGauge.style.background = "#5dfd8c";
+						}
+					} else {
+						capCard.style.display = "none";
+					}
+				}
+
+				if (cycleCard && cycleLabel) {
+					if (health.cycle_count != null) {
+						cycleLabel.textContent = health.cycle_count.toString();
+						cycleCard.style.display = "flex";
+					} else {
+						cycleCard.style.display = "none";
+					}
+				}
+
+				if (wearCard && wearLabel && health.wear_level != null) {
+					wearCard.style.display = "flex";
+					const wear = Math.max(
+						0,
+						Math.round(health.wear_level * 10) / 10,
+					);
+					wearLabel.textContent = `${wear}%`;
+
+					if (wearGauge) {
+						const healthRemaining = 100 - wear;
+						wearGauge.style.width = `${healthRemaining}%`;
+
+						if (healthRemaining < 70) {
+							wearGauge.style.background = "#ff4d4d";
+							wearLabel.style.color = "#ff4d4d";
+						} else if (healthRemaining < 85) {
+							wearGauge.style.background = "#ff9f43";
+							wearLabel.style.color = "#ff9f43";
+						} else {
+							wearGauge.style.background = "#5dfd8c";
+							wearLabel.style.color = "#5dfd8c";
+						}
+					}
+				} else if (wearCard) {
+					wearCard.style.display = "none";
+				}
 			}
 
 			// Retarde l'exécution d'une fonction jusqu'à la fin d'une période d'inactivité
@@ -691,7 +1143,13 @@ import "../styles/global.css";
 					)) as BatteryInfo;
 					updateBatteryUI(initialStatus);
 
-					// 3. Écouter les mises à jour
+					// 3. Charger la santé de la batterie
+					const health = (await invoke(
+						"get_battery_health",
+					)) as BatteryHealth;
+					updateHealthUI(health);
+
+					// 4. Écouter les mises à jour
 					await listen("battery-status", (event) => {
 						updateBatteryUI(event.payload as BatteryInfo);
 					});
