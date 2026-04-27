@@ -97,6 +97,10 @@ const buttonBg = isFull
 				cursor: grab;
 			}
 
+			.notification-card.closing {
+				animation: slideOut 0.4s ease-in forwards;
+			}
+
 			.notification-card:active {
 				cursor: grabbing;
 			}
@@ -215,11 +219,55 @@ const buttonBg = isFull
 					opacity: 1;
 				}
 			}
+
+			@keyframes slideOut {
+				from {
+					transform: translateX(0);
+					opacity: 1;
+				}
+				to {
+					transform: translateX(100%);
+					opacity: 0;
+				}
+			}
 		</style>
 		<script>
 			import { getCurrentWindow } from "@tauri-apps/api/window";
+			import { listen } from "@tauri-apps/api/event";
 
 			const appWindow = getCurrentWindow();
+
+			interface BatteryInfo {
+				percentage: number;
+				is_plugged_in: boolean;
+				state: string;
+				temperature: number | null;
+				power_usage: number | null;
+			}
+
+			let isClosing = false;
+
+			function closeWithAnimation() {
+				if (isClosing) return;
+				isClosing = true;
+				const card = document.querySelector(".notification-card");
+				if (card) {
+					card.classList.add("closing");
+					card.addEventListener(
+						"animationend",
+						() => {
+							appWindow.close();
+						},
+						{ once: true },
+					);
+					// Sécurité : si animationend ne se déclenche pas, fermeture forcée
+					setTimeout(() => {
+						appWindow.close();
+					}, 600);
+				} else {
+					appWindow.close();
+				}
+			}
 
 			// --- Mise à jour dynamique de l'UI (Architecture SSG) ---
 			function updateUIFromParams() {
@@ -289,14 +337,31 @@ const buttonBg = isFull
 			document
 				.getElementById("close-notification-btn")
 				?.addEventListener("click", () => {
-					appWindow.close();
+					closeWithAnimation();
 				});
 
 			document
 				.querySelector(".action-btn")
 				?.addEventListener("click", () => {
-					appWindow.close();
+					closeWithAnimation();
 				});
+
+			// Fermeture automatique quand l'utilisateur résout la condition
+			// (branche/débranche le chargeur selon ce que demande l'alerte).
+			listen<BatteryInfo>("battery-status", (event) => {
+				const info = event.payload;
+				const params = new URLSearchParams(window.location.search);
+				const type = params.get("type") || "full";
+				const isFull = type === "full";
+
+				// Alerte "full" = on demande de débrancher : on ferme dès que débranché.
+				// Alerte "low"  = on demande de brancher   : on ferme dès que branché.
+				if (isFull && !info.is_plugged_in) {
+					closeWithAnimation();
+				} else if (!isFull && info.is_plugged_in) {
+					closeWithAnimation();
+				}
+			});
 		</script>
 	</body>
 </html>
